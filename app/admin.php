@@ -41,11 +41,17 @@ final class Admin
         $_SESSION['csrf'] ??= bin2hex(random_bytes(32));
     }
 
-    private static function json(int $status, array $body): never
+    private static function json(int $status, array $body, bool $purge = false): never
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-store');
+        foreach (PRIVATE_HEADERS as $h) {
+            header($h);
+        }
+        if ($purge) {
+            // Sunucu önbelleğinde kalmış eski sayfaları temizler.
+            header('X-LiteSpeed-Purge: *');
+        }
         header('X-Content-Type-Options: nosniff');
         echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
@@ -148,7 +154,7 @@ final class Admin
         session_regenerate_id(true);
         $_SESSION['admin'] = $row['username'];
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
-        self::json(200, $this->state());
+        self::json(200, $this->state(), true);
     }
 
     private function logout(): never
@@ -190,12 +196,13 @@ final class Admin
             throw $e;
         }
         // Artık hiçbir kaydın kullanmadığı panel yüklemeleri silinir.
+        $purge = true;
         foreach (array_diff($before, $store->assetPaths()) as $path) {
             if (preg_match(self::UPLOAD, $path) && is_file($this->app->root . '/' . $path)) {
                 @unlink($this->app->root . '/' . $path);
             }
         }
-        self::json(200, $this->state());
+        self::json(200, $this->state(), $purge);
     }
 
     private static function referencedUploads(array $op): array
@@ -348,6 +355,9 @@ final class Admin
     private function setupPage(string $content): never
     {
         header('Content-Type: text/html; charset=utf-8');
+        foreach (PRIVATE_HEADERS as $h) {
+            header($h);
+        }
         echo $this->app->site()->standalone(
             'admin/kurulum/',
             'Kurulum',

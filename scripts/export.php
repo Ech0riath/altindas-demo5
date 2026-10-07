@@ -38,6 +38,7 @@ $site = new Site($data, [
     'backend' => 'github',
     'host' => 'GitHub Pages',
     'repo' => ['owner' => 'Ech0riath', 'name' => 'altindas-demo5', 'branch' => 'main'],
+    'assetVersion' => fn (string $path) => is_file("$out/$path") ? substr(md5_file("$out/$path"), 0, 10) : null,
 ]);
 
 copy_tree("$root/public", $out);
