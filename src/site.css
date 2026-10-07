@@ -892,11 +892,6 @@ summary:focus-visible {
   letter-spacing: 0.1em;
   margin-top: 5px;
 }
-.reference-column:hover .reference-track,
-.reference-column:focus-within .reference-track,
-.reference-column.is-paused .reference-track {
-  animation-play-state: paused;
-}
 .reference-bottom {
   display: flex;
   justify-content: space-between;
@@ -916,16 +911,6 @@ summary:focus-visible {
   width: 15px;
   height: 15px;
   color: var(--accent);
-}
-.motion-toggle {
-  background: #2a3542;
-  border: 1px solid #5a6979;
-  color: var(--accent);
-  height: 36px;
-  width: 36px;
-  border-radius: 5px;
-  font-size: 14px;
-  flex: none;
 }
 .project-grid {
   display: grid;
@@ -3052,42 +3037,11 @@ summary:focus-visible {
   .reference-logo {
     height: 100px;
   }
-  .motion-toggle {
-    display: block;
-  }
   .project-card:hover .project-cover > img {
     transform: none;
   }
 }
 
-.motion-toggle {
-  width: 44px;
-  height: 44px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .reference-column.motion-enabled .reference-window {
-    height: 450px;
-    overflow: hidden;
-    mask-image: linear-gradient(transparent, #000 8%, #000 92%, transparent);
-  }
-  .reference-column.motion-enabled .reference-track {
-    animation: reference-drift var(--reference-cycle, 48s) linear infinite !important;
-  }
-  .reference-column.motion-enabled .reference-group[aria-hidden="true"] {
-    display: flex;
-  }
-  .reference-column.motion-enabled .reference-logo {
-    height: 110px;
-  }
-  .reference-column.motion-enabled:hover .reference-track {
-    animation-play-state: paused !important;
-  }
-}
-@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
-  .reference-column.motion-enabled .reference-window {
-    height: 235px;
-  }
-}
 @media (max-width: 960px) {
   .panel-readouts strong {
     white-space: nowrap;

@@ -69,25 +69,6 @@ document.querySelectorAll("[data-panel]").forEach((button) =>
     document.getElementById("panel-note").textContent = d.note;
   }),
 );
-document.querySelectorAll(".motion-toggle").forEach((b) => {
-  if (window.matchMedia("(prefers-reduced-motion:reduce)").matches) {
-    b.closest(".reference-column").classList.add("is-paused");
-    b.setAttribute("aria-pressed", "true");
-    b.setAttribute("aria-label", "Logo hareketini başlat");
-    b.textContent = "▷";
-  }
-  b.addEventListener("click", () => {
-    const pause = b.getAttribute("aria-pressed") !== "true";
-    b.closest(".reference-column").classList.toggle("is-paused", pause);
-    b.closest(".reference-column").classList.toggle("motion-enabled", !pause);
-    b.setAttribute("aria-pressed", String(pause));
-    b.setAttribute(
-      "aria-label",
-      pause ? "Logo hareketini sürdür" : "Logo hareketini durdur",
-    );
-    b.textContent = pause ? "▷" : "Ⅱ";
-  });
-});
 document.querySelectorAll("[data-filter]").forEach((b) =>
   b.addEventListener("click", () => {
     document.querySelectorAll("[data-filter]").forEach((other) => {

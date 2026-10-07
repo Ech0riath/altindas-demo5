@@ -1,6 +1,6 @@
 # Altındaş demo5 — uygulama planı
 
-Kullanıcı kararı, 7 Ekim 2026: Website2/ornekler/ornek3.html temel alınır. Gri saha panosu estetiği, sarı vurgu ve koyu ölçüm paneli korunur. Referans logoları tek dikey sütunda yavaş kayar. Her proje kısa özetli karttan kendi detay sayfasına açılır. Yayın hedefi Ech0riath/altindas-demo5, GitHub Pages.
+Kullanıcı kararı, 7 Ekim 2026: Website2/ornekler/ornek3.html temel alınır. Gri saha panosu estetiği, sarı vurgu ve koyu ölçüm paneli korunur. Referans logoları tek dikey sütunda yavaş ve sürekli kayar; durdurma düğmesi ve fareyle durma yoktur (kullanıcı kararı, 7 Ekim 2026). “Hareketi azalt” tercihinde sabit liste gösterilir. Her proje kısa özetli karttan kendi detay sayfasına açılır. Yayın hedefi Ech0riath/altindas-demo5, GitHub Pages.
 
 ## Tasarım
 
@@ -30,7 +30,7 @@ Kullanıcı kararı, 7 Ekim 2026: proje (bilgi + fotoğraf) ve mağaza ürünü 
 
 ## Doğrulama ve yayın
 
-Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, hareket durdurma, form kontrolü → GitHub Pages yayını → canlı URL doğrulama.
+Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, logo kayması, form kontrolü → GitHub Pages yayını → canlı URL doğrulama.
 
 ## Kaynak sınırları
 

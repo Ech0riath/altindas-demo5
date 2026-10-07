@@ -29,7 +29,7 @@ npm run preview
 
 ## İşlevler
 
-Referanslar tek dikey sütunda 48 saniyelik çevrimle kayar. Fare üzerine geldiğinde durur; durdurma/başlatma düğmesi vardır. Hareketi azaltma tercihinde varsayılan statiktir, ziyaretçi isterse başlatabilir.
+Referanslar tek dikey sütunda sürekli kayar (logo başına yaklaşık 9,6 saniye). Kullanıcı kararıyla durdurma düğmesi ve fareyle durma yoktur. İşletim sisteminde “hareketi azalt” tercihi açık ziyaretçilere logolar sabit liste olarak gösterilir.
 
 Proje kartları ilgili ayrıntı sayfalarına gider. Proje dizini kategoriye göre filtrelenebilir. Ana sayfadaki ölçüm paneli etkileşimli bir temsilî gösterimdir; canlı tesis verisi değildir.
 
