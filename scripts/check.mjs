@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { bannedPhrases } from "../src/content-rules.js";
 
 // Dependency-free structural smoke test. Browser/assistive-technology testing
 // is still required; this deliberately does not claim WCAG conformance.
@@ -237,23 +238,7 @@ for (const [file, html] of docs) {
     }
   }
   const visible = textOnly(html);
-  const banned = [
-    [/lorem ipsum|dolor sit amet/i, "Lorem placeholder"],
-    [/\bTODO\b|\bFIXME\b/, "Implementation placeholder"],
-    [/örnek yorum|örnek müşteri|demo yorumu/i, "Sample testimonial"],
-    [
-      /EPDK\s*onaylı|TEDAŞ\s*onaylı|FAT\s*belgeli/i,
-      "Unconfirmed certification claim",
-    ],
-    [/\b100\s*%|%\s*100\s*(?:garanti|başarı)/i, "Absolute success claim"],
-    [
-      /500\+\s*proje|200\+\s*müşteri|15\+?\s*yıl|2010.dan bu yana/i,
-      "Disallowed unsupported company metric",
-    ],
-    [/Özdenizcilik Gemi|Öz Denizcilik|Nığsa/i, "Incorrect customer name"],
-    [/45[.,]000\s*(?:TL|₺)/i, "Unconfirmed annual savings claim"],
-  ];
-  for (const [pattern, label] of banned)
+  for (const [pattern, label] of bannedPhrases)
     if (pattern.test(visible)) fail(file, label);
   // Additional private phrases may be provided locally without saving them to a public repository.
   for (const phrase of (process.env.QA_PRIVATE_PHRASES || "")

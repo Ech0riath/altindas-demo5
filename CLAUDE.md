@@ -24,6 +24,10 @@ Araç seti yerel olarak indirildi: wilwaldon/Claude-Code-Frontend-Design-Toolkit
 
 Bağımlılıksız Node statik üretim. Aynı üstbilgi, altbilgi ve tasarım tokenları bütün sayfalarda kullanılır. /altindas-demo5/ tek merkezden uygulanır. GitHub Pages sunucu tarafı form işlemediği için keşif formu okunabilir WhatsApp mesajı hazırlar; gönderme işlemini ziyaretçi WhatsApp'ta tamamlar. Sahte başarı bildirimi yoktur.
 
+## Yönetim paneli
+
+Kullanıcı kararı, 7 Ekim 2026: proje (bilgi + fotoğraf) ve mağaza ürünü (bilgi + fiyat) bir yönetim panelinden eklenir. Panel `/admin/` adresinde, bağımlılıksız tarayıcı kodudur (`src/admin.js`). Kullanıcının ince ayarlı GitHub anahtarıyla `src/content.json` ve `public/assets/...` dosyalarını `main` dalına tek commit olarak yazar; yayın mevcut Pages iş akışıyla olur. Mağaza ödeme almaz, WhatsApp sipariş mesajı hazırlar. Panelin yazdığı JSON biçimi (`JSON.stringify(data, null, 2)`) korunur; elle düzenlemede de aynı biçim kullanılır. Yasaklı ifade kuralları `src/content-rules.js` içinde tek yerdedir.
+
 ## Doğrulama ve yayın
 
 Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, hareket durdurma, form kontrolü → GitHub Pages yayını → canlı URL doğrulama.
