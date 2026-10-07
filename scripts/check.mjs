@@ -11,8 +11,8 @@ const project = path.resolve(
 );
 const root = path.resolve(project, process.argv[2] || "dist");
 // Hostinger çıktısı denetlenirken SITE_BASE / SITE_ORIGIN ile değiştirilir.
-const base = process.env.SITE_BASE || "/altindas-demo5/";
-const origin = process.env.SITE_ORIGIN || "https://ech0riath.github.io";
+const base = process.env.SITE_BASE || "/demo/";
+const origin = process.env.SITE_ORIGIN || "http://127.0.0.1:4325";
 const errors = [];
 const counts = { pages: 0, references: 0, images: 0, structuredData: 0 };
 const fail = (file, message) =>

@@ -1,6 +1,7 @@
 <?php
-// GitHub Pages için statik çıktı: app/site.php şablonlarını src/content.json
-// verisiyle çalıştırıp her rotayı dist/ altına HTML dosyası olarak yazar.
+// Yerel denetim çıktısı: app/site.php şablonlarını src/content.json verisiyle
+// çalıştırıp her rotayı dist/ altına HTML dosyası olarak yazar (npm run check
+// bu çıktıyı denetler). Canlı site Hostinger'dadır.
 declare(strict_types=1);
 
 require __DIR__ . '/../app/site.php';
@@ -9,7 +10,7 @@ use Altindas\Site;
 
 $root = dirname(__DIR__);
 $out = $root . '/' . ($argv[1] ?? 'dist');
-$base = '/altindas-demo5/';
+$base = '/demo/';
 
 function copy_tree(string $from, string $to): void
 {
@@ -34,10 +35,8 @@ function write_file(string $file, string $content): void
 $data = json_decode(file_get_contents("$root/src/content.json"), true, 512, JSON_THROW_ON_ERROR);
 $site = new Site($data, [
     'base' => $base,
-    'origin' => 'https://ech0riath.github.io',
-    'backend' => 'github',
-    'host' => 'GitHub Pages',
-    'repo' => ['owner' => 'Ech0riath', 'name' => 'altindas-demo5', 'branch' => 'main'],
+    'origin' => 'http://127.0.0.1:4325',
+    'host' => 'Hostinger',
     'assetVersion' => fn (string $path) => is_file("$out/$path") ? substr(md5_file("$out/$path"), 0, 10) : null,
 ]);
 

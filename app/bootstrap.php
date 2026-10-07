@@ -78,7 +78,6 @@ final class App
             [
                 'base' => $this->base,
                 'origin' => $this->origin,
-                'backend' => 'php',
                 'host' => 'Hostinger',
                 'robots' => empty($this->config['indexable']) ? 'noindex,follow' : 'index,follow',
                 'assetVersion' => fn (string $path) => is_file($this->root . '/' . $path) ? substr(md5_file($this->root . '/' . $path), 0, 10) : null,

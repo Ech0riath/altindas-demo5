@@ -1,7 +1,10 @@
 name: Publish website
+# Site Hostinger'a taşındı. GitHub Pages yalnız "taşındı" sayfasını yayınlar;
+# eski demo adreslerinin tamamı (yönetim paneli dahil) bu sayfaya düşer.
 on:
   push:
     branches: [main]
+    paths: [pages/**, .github/workflows/pages.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,15 +21,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm run build
-      - run: npm run check
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: pages
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

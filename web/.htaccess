@@ -3,6 +3,10 @@ DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  # Gizli dosya ve klasörler (.git vb.) dışarıya kapalı.
+  RewriteRule (^|/)\. - [F]
+  # Panel her zaman uygulamadan sunulur; klasörde eski dosya kalsa bile.
+  RewriteRule ^admin(/|$) index.php [L,QSA]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ index.php [L,QSA]
 </IfModule>

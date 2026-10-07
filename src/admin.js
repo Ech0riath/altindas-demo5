@@ -1,17 +1,10 @@
-// Yönetim paneli. İki sunucu tarafıyla çalışır (data-backend):
-// - "github" (GitHub Pages): sunucu kodu olmadığı için kullanıcının ince
-//   ayarlı GitHub anahtarıyla depoya tek commit yazar; Pages iş akışı yayınlar.
-// - "php" (Hostinger): kullanıcı adı/şifreyle oturum açar, kayıtlar
-//   admin/api üzerinden MySQL'e yazılır ve hemen yayına girer.
+// Yönetim paneli (Hostinger). Kullanıcı adı/şifreyle oturum açar; kayıtlar
+// admin/api üzerinden MySQL'e, fotoğraflar uploads/ klasörüne yazılır ve
+// hemen yayına girer. Sunucu tarafı: app/admin.php, app/store.php.
 import { bannedLabelsTr, findBannedPhrase } from "./content-rules.js";
 
 const app = document.getElementById("admin-app");
 const cfg = { ...app.dataset };
-const PHP = cfg.backend === "php";
-const API = "https://api.github.com";
-const repoPath = `/repos/${cfg.owner}/${cfg.repo}`;
-const CONTENT = "src/content.json";
-const TOKEN_KEY = "altindas-admin-token";
 const statusEl = document.getElementById("admin-status");
 const loginEl = document.getElementById("admin-login");
 const loginForm = document.getElementById("login-form");
@@ -31,16 +24,12 @@ const KINDS = {
     add: "Yeni ürün ekle",
   },
 };
-// Yeni fotoğrafların yazıldığı klasörler. Hostinger'da git ile gelen
-// assets/ klasörüne dokunulmaz; panel yüklemeleri uploads/ altına gider.
-const DIRS = PHP
-  ? { projects: "uploads/projects/", products: "uploads/products/", references: "uploads/references/" }
-  : { projects: "assets/projects/", products: "assets/products/", references: "assets/references/" };
-const MANAGED_DIRS = [
-  "assets/projects/",
-  "assets/products/",
-  "assets/references/",
-];
+// Panel yüklemeleri uploads/ altına gider; paketle gelen assets/ dosyalarına dokunulmaz.
+const DIRS = {
+  projects: "uploads/projects/",
+  products: "uploads/products/",
+  references: "uploads/references/",
+};
 const DRAWINGS = [
   ["building", "Bina"],
   ["shield", "Kalkan (işletme / bakım)"],
@@ -63,11 +52,10 @@ const MAX_GALLERY = 12;
 const PHOTO = { maxWidth: 1600, maxHeight: 1600 };
 const LOGO = { maxWidth: 480, maxHeight: 200, logo: true };
 
-const session = { token: null, user: null, csrf: null };
+const session = { user: null, csrf: null };
 let repoState = null;
 const ui = { tab: "projects", mode: "list", form: null, order: null };
 let busy = false;
-let watchId = 0;
 let uid = 0;
 // Photos uploaded in this session, shown before the rebuilt site serves them.
 const localPreviews = new Map();
@@ -105,8 +93,6 @@ const priceFormat = new Intl.NumberFormat("tr-TR", {
 });
 const stamp = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const rawUrl = (src) =>
-  `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${cfg.branch}/public/${src}`;
 const pageUrl = (kind, item) =>
   cfg.site + KINDS[kind].route + (item ? item.slug + "/" : "");
 
@@ -137,41 +123,6 @@ function parsePrice(raw) {
   else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
   if (!/^\d+(\.\d{1,2})?$/.test(s)) return NaN;
   return Math.round(Number(s) * 100) / 100;
-}
-
-function storages() {
-  const list = [];
-  try {
-    list.push(window.sessionStorage);
-  } catch {}
-  try {
-    list.push(window.localStorage);
-  } catch {}
-  return list.filter(Boolean);
-}
-function readToken() {
-  for (const s of storages()) {
-    try {
-      const value = s.getItem(TOKEN_KEY);
-      if (value) return value;
-    } catch {}
-  }
-  return null;
-}
-function clearToken() {
-  for (const s of storages())
-    try {
-      s.removeItem(TOKEN_KEY);
-    } catch {}
-}
-function writeToken(value, remember) {
-  clearToken();
-  try {
-    (remember ? window.localStorage : window.sessionStorage).setItem(
-      TOKEN_KEY,
-      value,
-    );
-  } catch {}
 }
 
 function setStatus(message = "", kind = "info", link = null) {
@@ -205,47 +156,16 @@ function setBusy(value) {
     restoreFocus.focus();
 }
 
-// ---------------------------------------------------------------- GitHub API
+// ---------------------------------------------------------------- API
 class ApiError extends Error {
-  constructor(status, message, rateLimited = false) {
+  constructor(status, message) {
     super(message);
     this.status = status;
-    this.rateLimited = rateLimited;
   }
 }
 class InputError extends Error {}
 
-async function gh(path, { method = "GET", body } = {}) {
-  let res;
-  try {
-    res = await fetch(API + path, {
-      method,
-      cache: "no-store",
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${session.token}`,
-        ...(body ? { "Content-Type": "application/json" } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  } catch {
-    throw new ApiError(
-      0,
-      "GitHub’a ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.",
-    );
-  }
-  if (!res.ok) {
-    const info = await res.json().catch(() => ({}));
-    throw new ApiError(
-      res.status,
-      info.message || res.statusText,
-      res.headers.get("x-ratelimit-remaining") === "0",
-    );
-  }
-  return res.status === 204 ? null : res.json();
-}
-
-// Hostinger sunucusundaki panel API'si (app/admin.php).
+// Sunucudaki panel API'si (app/admin.php).
 async function server(action, { method = "GET", json, form } = {}, retried = false) {
   let res;
   try {
@@ -295,209 +215,7 @@ function explain(err) {
     console.error(err);
     return "Beklenmeyen bir hata oluştu: " + err.message;
   }
-  if (err.status === 0 || PHP) return err.message;
-  if (err.status === 401)
-    return "Anahtar geçersiz ya da süresi dolmuş. Yeni bir anahtar oluşturup tekrar bağlanın.";
-  if (err.status === 403 && err.rateLimited)
-    return "GitHub istek sınırına ulaşıldı. Birkaç dakika sonra tekrar deneyin.";
-  if (err.status === 403)
-    return `GitHub bu işlemi reddetti. Anahtarın ${cfg.repo} deposu için “Contents: Read and write” izni olduğundan emin olun.`;
-  if (err.status === 404)
-    return `Depo bulunamadı. Anahtarı oluştururken ${cfg.repo} deposunu seçtiğinizden emin olun.`;
-  if (err.status === 409)
-    return "Depo bu sırada değişti ve kayıt tamamlanamadı. Lütfen tekrar deneyin.";
-  return `GitHub kaydı kabul etmedi (${err.status}: ${err.message}). Lütfen tekrar deneyin.`;
-}
-
-const fromBase64 = (b64) =>
-  new TextDecoder().decode(
-    Uint8Array.from(atob(b64.replace(/\s/g, "")), (c) => c.charCodeAt(0)),
-  );
-const blobToBase64 = (blob) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1]);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-
-async function loadRepo() {
-  const ref = await gh(`${repoPath}/git/ref/heads/${cfg.branch}`);
-  const commit = await gh(`${repoPath}/git/commits/${ref.object.sha}`);
-  const tree = await gh(
-    `${repoPath}/git/trees/${commit.tree.sha}?recursive=1`,
-  );
-  const entry = tree.tree.find((e) => e.path === CONTENT);
-  if (!entry) throw new InputError(`${CONTENT} depoda bulunamadı.`);
-  const blob = await gh(`${repoPath}/git/blobs/${entry.sha}`);
-  const data = JSON.parse(fromBase64(blob.content));
-  data.services ||= [];
-  data.projects ||= [];
-  data.products ||= [];
-  data.references ||= [];
-  return {
-    commitSha: ref.object.sha,
-    treeSha: commit.tree.sha,
-    paths: new Set(tree.tree.filter((e) => e.type === "blob").map((e) => e.path)),
-    data,
-  };
-}
-
-function assetPaths(data) {
-  const out = new Set();
-  const add = (p) => p && out.add(String(p).replace(/^\//, ""));
-  for (const item of [...data.projects, ...data.products]) {
-    add(item.image);
-    item.gallery?.forEach((g) => add(g.src));
-  }
-  data.references.forEach((r) => add(r.logo));
-  return out;
-}
-
-// Writes uploads + content.json (+ removal of images nothing references any
-// more) as one commit on top of the latest branch head. `mutate` is re-applied
-// to freshly loaded data if someone else pushed in between.
-async function commit(message, mutate, uploads = []) {
-  const blobs = [];
-  for (const [i, upload] of uploads.entries()) {
-    setStatus(
-      `Fotoğraflar yükleniyor (${i + 1}/${uploads.length})…`,
-      "progress",
-    );
-    const blob = await gh(`${repoPath}/git/blobs`, {
-      method: "POST",
-      body: { content: await blobToBase64(upload.blob), encoding: "base64" },
-    });
-    blobs.push({
-      path: "public/" + upload.path,
-      mode: "100644",
-      type: "blob",
-      sha: blob.sha,
-    });
-  }
-  for (let attempt = 1; ; attempt++) {
-    setStatus("Değişiklik kaydediliyor…", "progress");
-    const fresh = await loadRepo();
-    const before = assetPaths(fresh.data);
-    mutate(fresh.data);
-    const after = assetPaths(fresh.data);
-    const removals = [...before]
-      .filter(
-        (p) =>
-          !after.has(p) &&
-          MANAGED_DIRS.some((d) => p.startsWith(d)) &&
-          fresh.paths.has("public/" + p),
-      )
-      .map((p) => ({
-        path: "public/" + p,
-        mode: "100644",
-        type: "blob",
-        sha: null,
-      }));
-    const tree = await gh(`${repoPath}/git/trees`, {
-      method: "POST",
-      body: {
-        base_tree: fresh.treeSha,
-        tree: [
-          {
-            path: CONTENT,
-            mode: "100644",
-            type: "blob",
-            content: JSON.stringify(fresh.data, null, 2) + "\n",
-          },
-          ...blobs,
-          ...removals,
-        ],
-      },
-    });
-    const created = await gh(`${repoPath}/git/commits`, {
-      method: "POST",
-      body: { message, tree: tree.sha, parents: [fresh.commitSha] },
-    });
-    try {
-      await gh(`${repoPath}/git/refs/heads/${cfg.branch}`, {
-        method: "PATCH",
-        body: { sha: created.sha, force: false },
-      });
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 422 && attempt < 3)
-        continue;
-      throw err;
-    }
-    for (const b of blobs) fresh.paths.add(b.path);
-    for (const r of removals) fresh.paths.delete(r.path);
-    repoState = {
-      ...fresh,
-      commitSha: created.sha,
-      treeSha: tree.sha,
-    };
-    return created.sha;
-  }
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function watchDeploy(sha, href) {
-  const id = ++watchId;
-  const actions = `https://github.com/${cfg.owner}/${cfg.repo}/actions`;
-  const started = Date.now();
-  setStatus("Kaydedildi. Site yeniden oluşturuluyor…", "progress");
-  while (id === watchId && Date.now() - started < 15 * 60 * 1000) {
-    await sleep(8000);
-    if (id !== watchId) return;
-    let runs;
-    try {
-      runs = await gh(
-        `${repoPath}/actions/runs?head_sha=${sha}&per_page=10`,
-      );
-    } catch (err) {
-      if (err instanceof ApiError && [401, 403, 404].includes(err.status)) {
-        setStatus(
-          "Kaydedildi. Yayın durumu okunamıyor (anahtarda “Actions: Read-only” izni yok). Site genellikle 2–3 dakika içinde güncellenir.",
-          "success",
-          { href: actions, label: "Yayın kayıtları ↗" },
-        );
-        return;
-      }
-      continue;
-    }
-    const run =
-      runs.workflow_runs.find((r) => r.path?.endsWith("pages.yml")) ??
-      runs.workflow_runs[0];
-    if (!run) continue;
-    if (run.status !== "completed") {
-      setStatus(
-        `Kaydedildi. Site yeniden oluşturuluyor (${run.status === "queued" ? "sırada" : "derleniyor"})…`,
-        "progress",
-        { href: run.html_url, label: "Ayrıntı ↗" },
-      );
-      continue;
-    }
-    if (run.conclusion === "success")
-      setStatus(
-        "Yayında. Değişikliğin görünmesi bir dakika kadar sürebilir.",
-        "success",
-        { href, label: "Sayfayı aç ↗" },
-      );
-    else if (run.conclusion === "cancelled")
-      setStatus(
-        "Bu yayın, ardından gelen daha yeni bir kayıtla birleştirildi. Son kaydın yayını sürüyor.",
-        "info",
-        { href: actions, label: "Yayın kayıtları ↗" },
-      );
-    else
-      setStatus(
-        "Yayın başarısız oldu; site önceki hâliyle yayında kalır. Hata kaydını GitHub’da görebilirsiniz.",
-        "error",
-        { href: run.html_url, label: "Hata kaydı ↗" },
-      );
-    return;
-  }
-  if (id === watchId)
-    setStatus(
-      "Kaydedildi. Yayın beklenenden uzun sürüyor; durumu GitHub’da izleyebilirsiniz.",
-      "info",
-      { href: actions, label: "Yayın kayıtları ↗" },
-    );
+  return err.message;
 }
 
 // ---------------------------------------------------------------- images
@@ -567,21 +285,15 @@ function preview(entry) {
   if (local) img.src = local;
   else {
     img.src = cfg.base + entry.src;
-    img.addEventListener("error", () => {
-      if (PHP || img.dataset.fallback) {
-        img.replaceWith(h("span", { class: "admin-thumb-empty" }, "Önizleme yok"));
-        return;
-      }
-      img.dataset.fallback = "1";
-      img.src = rawUrl(entry.src);
-    });
+    img.addEventListener("error", () =>
+      img.replaceWith(h("span", { class: "admin-thumb-empty" }, "Önizleme yok")),
+    );
   }
   return img;
 }
 
 // ---------------------------------------------------------------- session
 async function loadState() {
-  if (!PHP) return loadRepo();
   const state = await server("state");
   session.user = state.user;
   return { data: state.data };
@@ -589,7 +301,6 @@ async function loadState() {
 
 async function connect() {
   setStatus("Bağlanılıyor…", "progress");
-  if (!PHP) session.user = await gh("/user");
   repoState = await loadState();
   showWorkspace();
 }
@@ -621,30 +332,23 @@ function showLogin(message, kind = "info") {
 
 async function logout() {
   if (!leaveEditor()) return;
-  watchId++;
-  if (PHP) {
-    try {
-      await server("logout", { method: "POST" });
-      // Yeni girişte kullanılacak CSRF anahtarını alır (yanıt 401'dir).
-      await server("state").catch(() => {});
-    } catch (err) {
-      // Oturum zaten kapanmışsa çıkış tamamlanmış sayılır.
-      if (!(err instanceof ApiError && err.status === 401)) {
-        fail(err);
-        return;
-      }
+  try {
+    await server("logout", { method: "POST" });
+    // Yeni girişte kullanılacak CSRF anahtarını alır (yanıt 401'dir).
+    await server("state").catch(() => {});
+  } catch (err) {
+    // Oturum zaten kapanmışsa çıkış tamamlanmış sayılır.
+    if (!(err instanceof ApiError && err.status === 401)) {
+      fail(err);
+      return;
     }
-    showLogin("Çıkış yapıldı.");
-    return;
   }
-  clearToken();
-  session.token = null;
-  showLogin("Çıkış yapıldı. Anahtar bu tarayıcıdan silindi.");
+  showLogin("Çıkış yapıldı.");
 }
 
-// Hata mesajını gösterir; Hostinger oturumu düştüyse giriş ekranına döner.
+// Hata mesajını gösterir; oturum düştüyse giriş ekranına döner.
 function fail(err) {
-  if (PHP && err instanceof ApiError && err.status === 401) {
+  if (err instanceof ApiError && err.status === 401) {
     if (ui.form) ui.form.dirty = false;
     showLogin("Oturumun süresi doldu. Lütfen yeniden giriş yapın.", "error");
     return;
@@ -652,12 +356,10 @@ function fail(err) {
   setStatus(explain(err), "error");
 }
 
-// Bir işlemi kalıcı hâle getirir. GitHub'da commit, Hostinger'da API isteği.
-async function persist(message, op, uploads = []) {
-  if (!PHP) return { sha: await commit(message, (data) => applyOp(data, op), uploads) };
-  const { check, ...wire } = op;
+// Bir işlemi (ekle/güncelle, sil, sırala) fotoğraflarıyla birlikte sunucuya yazar.
+async function persist(op, uploads = []) {
   const body = new FormData();
-  body.append("op", JSON.stringify(wire));
+  body.append("op", JSON.stringify(op));
   body.append("paths", JSON.stringify(uploads.map((u) => u.path)));
   for (const u of uploads) body.append("files[]", u.blob, u.path.split("/").pop());
   setStatus(
@@ -666,33 +368,13 @@ async function persist(message, op, uploads = []) {
   );
   const state = await server("save", { method: "POST", form: body });
   repoState = { data: state.data };
-  return {};
 }
 
-function published(result, href) {
-  if (PHP)
-    setStatus("Kaydedildi; değişiklik sitede yayında.", "success", {
-      href,
-      label: "Sayfayı aç ↗",
-    });
-  else watchDeploy(result.sha, href);
-}
-
-function applyOp(data, op) {
-  if (op.type === "upsert") {
-    op.check?.(data);
-    upsert(data, op);
-  } else if (op.type === "delete") {
-    data[op.kind] = data[op.kind].filter((x) => x.slug !== op.slug);
-    if (op.kind === "projects")
-      data.references = data.references.filter((r) => r.project !== op.slug);
-  } else if (op.type === "reorder") {
-    const rank = new Map(op.slugs.map((s, i) => [s, i]));
-    // Bu arada eklenmiş kayıtlar, yeni kayıtlar gibi en üstte kalır.
-    data[op.kind] = [...data[op.kind]].sort(
-      (a, b) => (rank.get(a.slug) ?? -1) - (rank.get(b.slug) ?? -1),
-    );
-  }
+function published(href) {
+  setStatus("Kaydedildi; değişiklik sitede yayında.", "success", {
+    href,
+    label: "Sayfayı aç ↗",
+  });
 }
 
 async function refresh() {
@@ -738,21 +420,8 @@ function render() {
       h(
         "p",
         {},
-        PHP
-          ? [h("strong", {}, session.user.login), " olarak giriş yaptınız"]
-          : [
-              h("strong", {}, "@" + session.user.login),
-              " olarak bağlısınız · ",
-              h(
-                "a",
-                {
-                  href: `https://github.com/${cfg.owner}/${cfg.repo}`,
-                  target: "_blank",
-                  rel: "noopener noreferrer",
-                },
-                `${cfg.owner}/${cfg.repo} ↗`,
-              ),
-            ],
+        h("strong", {}, session.user.login),
+        " olarak giriş yaptınız",
       ),
       h(
         "div",
@@ -939,13 +608,8 @@ async function saveOrder(kind) {
   if (busy || ui.order?.kind !== kind) return;
   const slugs = ui.order.slugs;
   setBusy(true);
-  let result;
   try {
-    result = await persist(`Panel: ${KINDS[kind].noun} sıralaması güncellendi`, {
-      type: "reorder",
-      kind,
-      slugs,
-    });
+    await persist({ type: "reorder", kind, slugs });
   } catch (err) {
     fail(err);
     return;
@@ -955,7 +619,7 @@ async function saveOrder(kind) {
   ui.order = null;
   render();
   focusHeading();
-  published(result, pageUrl(kind));
+  published(pageUrl(kind));
 }
 
 async function removeItem(kind, item) {
@@ -968,13 +632,8 @@ async function removeItem(kind, item) {
   )
     return;
   setBusy(true);
-  let result;
   try {
-    result = await persist(`Panel: ${k.noun} silindi — ${item.title}`, {
-      type: "delete",
-      kind,
-      slug: item.slug,
-    });
+    await persist({ type: "delete", kind, slug: item.slug });
   } catch (err) {
     fail(err);
     return;
@@ -984,7 +643,7 @@ async function removeItem(kind, item) {
   ui.order = null;
   render();
   focusHeading();
-  published(result, pageUrl(kind));
+  published(pageUrl(kind));
 }
 
 // ---------------------------------------------------------------- editor
@@ -1873,9 +1532,7 @@ function renderEditor(form) {
         h(
           "p",
           {},
-          PHP
-            ? "Zorunlu alanlar işaretlidir. Kaydettiğinizde değişiklik sitede hemen görünür."
-            : "Zorunlu alanlar işaretlidir. Kaydettiğinizde site birkaç dakika içinde güncellenir.",
+          "Zorunlu alanlar işaretlidir. Kaydettiğinizde değişiklik sitede hemen görünür.",
         ),
       ),
       button("← Listeye dön", closeEditor, "admin-plain"),
@@ -2089,38 +1746,6 @@ function buildItem(form) {
   return { item, uploads, reference };
 }
 
-function upsert(data, { kind, original, item, reference }) {
-  const list = data[kind];
-  const index = list.findIndex((x) => x.slug === (original ?? item.slug));
-  if (original && index === -1)
-    throw new InputError(
-      "Bu kayıt siz düzenlerken başka bir yerden silinmiş. “Yenile” ile listeyi güncelleyin.",
-    );
-  if (!original && index !== -1)
-    throw new InputError("Bu sayfa adresi başka bir kayıtta kullanılıyor.");
-  const merged = { ...item };
-  // Keeps fields the panel does not manage (added by hand in content.json).
-  if (index !== -1)
-    for (const [key, value] of Object.entries(list[index]))
-      if (!(key in merged) && key !== "draft") merged[key] = value;
-  if (index === -1) list.unshift(merged);
-  else list[index] = merged;
-  if (kind !== "projects") return;
-  const at = data.references.findIndex((r) => r.project === item.slug);
-  if (!reference) {
-    if (at !== -1) data.references.splice(at, 1);
-    return;
-  }
-  const entry = {
-    ...(at !== -1 ? data.references[at] : {}),
-    name: reference.name,
-    logo: reference.logo,
-    project: item.slug,
-  };
-  if (at === -1) data.references.push(entry);
-  else data.references[at] = entry;
-}
-
 async function save(form, formEl) {
   if (busy) return;
   if (form.pending) {
@@ -2134,22 +1759,15 @@ async function save(form, formEl) {
     return;
   }
   const { item, uploads, reference } = buildItem(form);
-  const k = KINDS[form.kind];
   setBusy(true);
   try {
-    const result = await persist(
-      `Panel: ${k.noun} ${form.original ? "güncellendi" : "eklendi"} — ${item.title}`,
+    await persist(
       {
         type: "upsert",
         kind: form.kind,
         original: form.original?.slug ?? null,
         item,
         reference,
-        // GitHub'da başkası araya kayıt yazdıysa güncel veriyle yeniden denetler.
-        check: (data) => {
-          const fresh = validate(form, data);
-          if (fresh.length) throw new InputError(fresh[0].message);
-        },
       },
       uploads,
     );
@@ -2161,12 +1779,11 @@ async function save(form, formEl) {
     render();
     focusHeading();
     if (item.draft) {
-      watchId++;
       setStatus(
         "Taslak kaydedildi. Sitede gösterilmez; yayımlamak için taslak işaretini kaldırıp kaydedin.",
         "success",
       );
-    } else published(result, pageUrl(form.kind, item));
+    } else published(pageUrl(form.kind, item));
   } catch (err) {
     setBusy(false);
     fail(err);
@@ -2174,7 +1791,7 @@ async function save(form, formEl) {
 }
 
 // ---------------------------------------------------------------- start
-async function phpLogin() {
+async function login() {
   const username = loginForm.querySelector("#username");
   const password = loginForm.querySelector("#password");
   if (!username.value.trim() || !password.value) {
@@ -2203,33 +1820,9 @@ async function phpLogin() {
   }
 }
 
-loginForm.addEventListener("submit", async (e) => {
+loginForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  if (PHP) {
-    phpLogin();
-    return;
-  }
-  const input = loginForm.querySelector("#token");
-  const value = input.value.trim();
-  if (!value) {
-    setStatus("Erişim anahtarını yapıştırın.", "error");
-    input.focus();
-    return;
-  }
-  session.token = value;
-  const submit = loginForm.querySelector("[type=submit]");
-  submit.disabled = true;
-  try {
-    await connect();
-    writeToken(value, loginForm.querySelector("#remember").checked);
-    input.value = "";
-  } catch (err) {
-    session.token = null;
-    setStatus(explain(err), "error");
-    input.focus();
-  } finally {
-    submit.disabled = false;
-  }
+  login();
 });
 
 window.addEventListener("beforeunload", (e) => {
@@ -2239,24 +1832,10 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 
-if (PHP) {
-  // Açık oturum varsa doğrudan panele geçer; yoksa giriş için CSRF anahtarını alır.
-  connect().catch((err) => {
-    loginEl.hidden = false;
-    workspace.hidden = true;
-    if (err instanceof ApiError && err.status === 401) setStatus("");
-    else setStatus(explain(err), "error");
-  });
-} else {
-  const saved = readToken();
-  if (saved) {
-    session.token = saved;
-    connect().catch((err) => {
-      session.token = null;
-      if (err instanceof ApiError && err.status === 401) clearToken();
-      loginEl.hidden = false;
-      workspace.hidden = true;
-      setStatus(explain(err), "error");
-    });
-  }
-}
+// Açık oturum varsa doğrudan panele geçer; yoksa giriş için CSRF anahtarını alır.
+connect().catch((err) => {
+  loginEl.hidden = false;
+  workspace.hidden = true;
+  if (err instanceof ApiError && err.status === 401) setStatus("");
+  else setStatus(explain(err), "error");
+});

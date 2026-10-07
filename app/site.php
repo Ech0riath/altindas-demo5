@@ -1,7 +1,7 @@
 <?php
-// Sitenin bütün sayfa şablonları. Aynı kod iki yerde çalışır:
-// Hostinger'da her istekte (veri MySQL'den), GitHub Pages için ise
-// scripts/export.php ile statik dosya üretiminde (veri content.json'dan).
+// Sitenin bütün sayfa şablonları. Hostinger'da her istekte MySQL verisiyle
+// çalışır; scripts/export.php aynı şablonları yerel denetim için content.json
+// verisiyle statik dosyalara çevirir.
 declare(strict_types=1);
 
 namespace Altindas;
@@ -81,8 +81,7 @@ final class Site
 
     /**
      * @param array $data    services, projects, references, products, about, faqs
-     * @param array $options base, origin, backend ('github'|'php'), host,
-     *                       robots, repo (github), adminApi (php)
+     * @param array $options base, origin, host, robots, assetVersion
      */
     public function __construct(private array $data, private array $options)
     {
@@ -604,7 +603,7 @@ final class Site
 
     private function privacyPage(): string
     {
-        $host = $this->options['host'] ?? 'GitHub Pages';
+        $host = $this->options['host'] ?? 'Hostinger';
         $store = $this->hasStore
             ? '<h2>Mağaza siparişleri</h2><p>Mağaza sayfalarındaki sipariş düğmesi, seçtiğiniz ürün ve miktarla bir WhatsApp mesajı hazırlar. Site sipariş bilgisini kaydetmez; mesajı gönderme kararını siz verirsiniz. Stok, teslimat ve ödeme bilgisi sizinle doğrudan teyit edilir.</p>'
             : '';
@@ -619,28 +618,10 @@ final class Site
     private function adminPage(): string
     {
         $assets = '<link rel="stylesheet" href="' . $this->versioned('assets/admin.css') . '"><script type="module" src="' . $this->versioned('assets/admin.js') . '"></script>';
-        $status = '<p id="admin-status" class="admin-status" role="status" aria-live="polite"></p><noscript><p class="admin-status" data-kind="error">Panel için JavaScript gerekir.</p></noscript>';
-        if (($this->options['backend'] ?? 'github') === 'php') {
-            $body = $this->intro(null, 'Yönetim paneli', 'Projeleri ve mağaza ürünlerini buradan ekleyin. Kaydettiğiniz değişiklik sitede hemen yayına girer.') . '<div class="wrap admin-shell" id="admin-app" data-backend="php" data-api="' . $this->url('admin/api') . '" data-base="' . $this->base . '" data-site="' . $this->origin . $this->base . '">' . $status . '<div id="admin-login" class="form-layout admin-login"><form id="login-form" class="discovery-form" novalidate><div class="form-heading"><h2>Giriş yapın</h2><p>Kurulumda belirlediğiniz kullanıcı adı ve şifreyle giriş yapın.</p></div><div class="field"><label for="username">Kullanıcı adı</label><input id="username" name="username" autocomplete="username" spellcheck="false" required maxlength="60"></div><div class="field"><label for="password">Şifre</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"></div><button class="btn btn-primary" type="submit">Giriş yap ' . $this->icon('arrow') . '</button></form><aside class="form-aside"><span class="eyebrow">Güvenlik</span><h2>Oturum bu tarayıcıda açılır.</h2><p>Ortak kullanılan bilgisayarlarda işiniz bitince “Çıkış yap” düğmesini kullanın. Art arda hatalı denemelerde giriş bir süre kilitlenir.</p></aside></div><div id="admin-workspace" hidden></div></div>';
-            return $this->page('admin/', 'Yönetim paneli', 'Altındaş Mühendislik sitesine proje ve mağaza ürünü eklemek için yönetim paneli.', $body, '', null, [
-                'robots' => 'noindex,nofollow',
-                'head' => '<meta name="referrer" content="no-referrer">',
-                'assets' => $assets,
-            ]);
-        }
-        $repo = $this->options['repo'];
-        $tokenUrl = 'https://github.com/settings/personal-access-tokens/new?' . http_build_query([
-            'name' => 'Altındaş site paneli',
-            'description' => $repo['name'] . ' yönetim paneli: proje ve ürün kayıtları',
-            'target_name' => $repo['owner'],
-            'expires_in' => '90',
-            'contents' => 'write',
-            'actions' => 'read',
-        ]);
-        $body = $this->intro(null, 'Yönetim paneli', 'Projeleri ve mağaza ürünlerini buradan ekleyin. Kaydettiğinizde değişiklik GitHub deposuna işlenir ve site birkaç dakika içinde yeniden yayınlanır.') . '<div class="wrap admin-shell" id="admin-app" data-owner="' . $repo['owner'] . '" data-repo="' . $repo['name'] . '" data-branch="' . $repo['branch'] . '" data-base="' . $this->base . '" data-site="' . $this->origin . $this->base . '">' . $status . '<div id="admin-login" class="form-layout admin-login"><form id="login-form" class="discovery-form" novalidate><div class="form-heading"><h2>Panele bağlanın</h2><p>Panel, sitenin GitHub deposuna sizin erişim anahtarınızla kaydeder. Anahtar başka bir sunucuya gönderilmez; yalnız bu tarayıcıdan GitHub’a iletilir.</p></div><div class="field"><label for="token">GitHub erişim anahtarı</label><input id="token" name="token" type="password" autocomplete="off" spellcheck="false" required aria-describedby="token-help"><small id="token-help">“github_pat_” ile başlayan ince ayarlı (fine-grained) anahtar.</small></div><div class="admin-check"><input id="remember" name="remember" type="checkbox"><label for="remember">Bu cihazda hatırla <span>(paylaşılan bilgisayarlarda işaretlemeyin)</span></label></div><button class="btn btn-primary" type="submit">Bağlan ' . $this->icon('arrow') . '</button></form><aside class="form-aside"><span class="eyebrow">İlk kurulum</span><h2>Erişim anahtarı oluşturun.</h2><ol class="admin-steps"><li><a href="' . esc($tokenUrl) . '" target="_blank" rel="noopener noreferrer">GitHub’da anahtar oluşturma sayfasını açın ↗</a> Ad, süre ve izinler hazır gelir.</li><li><b>Repository access</b> bölümünde <b>Only select repositories</b> seçip <b>' . $repo['name'] . '</b> deposunu işaretleyin.</li><li>İzinlerin <b>Contents: Read and write</b> ve <b>Actions: Read-only</b> olduğunu kontrol edin.</li><li><b>Generate token</b> ile oluşturun, anahtarı kopyalayıp bu sayfaya yapıştırın.</li></ol><p>Anahtar 90 gün sonra sona erer; aynı adımlarla yenisini oluşturabilirsiniz. Anahtarı kimseyle paylaşmayın.</p></aside></div><div id="admin-workspace" hidden></div></div>';
+        $body = $this->intro(null, 'Yönetim paneli', 'Projeleri ve mağaza ürünlerini buradan ekleyin. Kaydettiğiniz değişiklik sitede hemen yayına girer.') . '<div class="wrap admin-shell" id="admin-app" data-api="' . $this->url('admin/api') . '" data-base="' . $this->base . '" data-site="' . $this->origin . $this->base . '"><p id="admin-status" class="admin-status" role="status" aria-live="polite"></p><noscript><p class="admin-status" data-kind="error">Panel için JavaScript gerekir.</p></noscript><div id="admin-login" class="form-layout admin-login"><form id="login-form" class="discovery-form" novalidate><div class="form-heading"><h2>Giriş yapın</h2><p>Kurulumda belirlediğiniz kullanıcı adı ve şifreyle giriş yapın.</p></div><div class="field"><label for="username">Kullanıcı adı</label><input id="username" name="username" autocomplete="username" spellcheck="false" required maxlength="60"></div><div class="field"><label for="password">Şifre</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"></div><button class="btn btn-primary" type="submit">Giriş yap ' . $this->icon('arrow') . '</button></form><aside class="form-aside"><span class="eyebrow">Güvenlik</span><h2>Oturum bu tarayıcıda açılır.</h2><p>Ortak kullanılan bilgisayarlarda işiniz bitince “Çıkış yap” düğmesini kullanın. Art arda hatalı denemelerde giriş bir süre kilitlenir.</p></aside></div><div id="admin-workspace" hidden></div></div>';
         return $this->page('admin/', 'Yönetim paneli', 'Altındaş Mühendislik sitesine proje ve mağaza ürünü eklemek için yönetim paneli.', $body, '', null, [
             'robots' => 'noindex,nofollow',
-            'head' => '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\'; style-src \'self\'; img-src \'self\' blob: data: https://raw.githubusercontent.com; font-src \'self\'; connect-src https://api.github.com; base-uri \'none\'; form-action \'none\'; object-src \'none\'"><meta name="referrer" content="no-referrer">',
+            'head' => '<meta name="referrer" content="no-referrer">',
             'assets' => $assets,
         ]);
     }

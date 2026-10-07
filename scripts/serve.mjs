@@ -23,10 +23,10 @@ http
       return;
     }
     if (url === "/") {
-      res.writeHead(302, { Location: "/altindas-demo5/" }).end();
+      res.writeHead(302, { Location: "/demo/" }).end();
       return;
     }
-    let relative = url.replace(/^\/altindas-demo5\/?/, "");
+    let relative = url.replace(/^\/demo\/?/, "");
     let target = path.resolve(root, relative || "index.html");
     if (!target.startsWith(root + path.sep) && target !== root) {
       res.writeHead(403).end();
@@ -47,5 +47,5 @@ http
     fs.createReadStream(target).pipe(res);
   })
   .listen(4325, "127.0.0.1", () =>
-    console.log("Preview: http://127.0.0.1:4325/altindas-demo5/"),
+    console.log("Preview: http://127.0.0.1:4325/demo/"),
   );
