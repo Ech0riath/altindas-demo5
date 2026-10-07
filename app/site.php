@@ -110,6 +110,13 @@ final class Site
         return $this->url((string) $src);
     }
 
+    // CSS/JS adresine içerik özeti ekler; güncellemeden sonra tarayıcı eski dosyayı kullanmaz.
+    private function versioned(string $path): string
+    {
+        $v = isset($this->options['assetVersion']) ? ($this->options['assetVersion'])($path) : null;
+        return $this->url($path) . ($v ? '?v=' . $v : '');
+    }
+
     private function icon(?string $name, string $cls = ''): string
     {
         $d = self::ICONS[$name ?? ''] ?? self::ICONS['bolt'];
@@ -178,7 +185,7 @@ final class Site
             ],
         ];
         $json = str_replace('<', '\\' . 'u003c', json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
-        return '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' . $head . '<meta name="theme-color" content="#1B222B"><title>' . esc($title) . ' | Altındaş Mühendislik &amp; Elektrik</title><meta name="description" content="' . esc($description) . '"><meta name="robots" content="' . $robots . '"><link rel="canonical" href="' . $canonical . '"><meta property="og:type" content="website"><meta property="og:locale" content="tr_TR"><meta property="og:title" content="' . esc($title) . '"><meta property="og:description" content="' . esc($description) . '"><meta property="og:url" content="' . $canonical . '"><meta property="og:image" content="' . $this->origin . $this->url('assets/share.png') . '"><link rel="icon" href="' . $this->url('favicon.svg') . '" type="image/svg+xml"><link rel="preload" href="' . $this->url('assets/fonts/archivo-tr.woff2') . '" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="' . $this->url('assets/site.css') . '"><script type="module" src="' . $this->url('assets/site.js') . '"></script>' . $assets . '<script type="application/ld+json">' . $json . '</script></head><body id="top"><a class="skip-link" href="#main">İçeriğe geç</a><div class="page-shell">' . $this->nav($active) . '<main id="main">' . $body . '</main>' . $this->footer() . '</div></body></html>';
+        return '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' . $head . '<meta name="theme-color" content="#1B222B"><title>' . esc($title) . ' | Altındaş Mühendislik &amp; Elektrik</title><meta name="description" content="' . esc($description) . '"><meta name="robots" content="' . $robots . '"><link rel="canonical" href="' . $canonical . '"><meta property="og:type" content="website"><meta property="og:locale" content="tr_TR"><meta property="og:title" content="' . esc($title) . '"><meta property="og:description" content="' . esc($description) . '"><meta property="og:url" content="' . $canonical . '"><meta property="og:image" content="' . $this->origin . $this->url('assets/share.png') . '"><link rel="icon" href="' . $this->url('favicon.svg') . '" type="image/svg+xml"><link rel="preload" href="' . $this->url('assets/fonts/archivo-tr.woff2') . '" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="' . $this->versioned('assets/site.css') . '"><script type="module" src="' . $this->versioned('assets/site.js') . '"></script>' . $assets . '<script type="application/ld+json">' . $json . '</script></head><body id="top"><a class="skip-link" href="#main">İçeriğe geç</a><div class="page-shell">' . $this->nav($active) . '<main id="main">' . $body . '</main>' . $this->footer() . '</div></body></html>';
     }
 
     private function sectionHead(string $label, string $title, string $sub = '', string $link = ''): string
@@ -358,7 +365,7 @@ final class Site
         return $this->page($route, $title, $description, $this->intro(null, $title, $description) . $body, '', null, [
             'robots' => 'noindex,nofollow',
             'head' => '<meta name="referrer" content="no-referrer">',
-            'assets' => '<link rel="stylesheet" href="' . $this->url('assets/admin.css') . '">',
+            'assets' => '<link rel="stylesheet" href="' . $this->versioned('assets/admin.css') . '">',
         ]);
     }
 
@@ -611,7 +618,7 @@ final class Site
 
     private function adminPage(): string
     {
-        $assets = '<link rel="stylesheet" href="' . $this->url('assets/admin.css') . '"><script type="module" src="' . $this->url('assets/admin.js') . '"></script>';
+        $assets = '<link rel="stylesheet" href="' . $this->versioned('assets/admin.css') . '"><script type="module" src="' . $this->versioned('assets/admin.js') . '"></script>';
         $status = '<p id="admin-status" class="admin-status" role="status" aria-live="polite"></p><noscript><p class="admin-status" data-kind="error">Panel için JavaScript gerekir.</p></noscript>';
         if (($this->options['backend'] ?? 'github') === 'php') {
             $body = $this->intro(null, 'Yönetim paneli', 'Projeleri ve mağaza ürünlerini buradan ekleyin. Kaydettiğiniz değişiklik sitede hemen yayına girer.') . '<div class="wrap admin-shell" id="admin-app" data-backend="php" data-api="' . $this->url('admin/api') . '" data-base="' . $this->base . '" data-site="' . $this->origin . $this->base . '">' . $status . '<div id="admin-login" class="form-layout admin-login"><form id="login-form" class="discovery-form" novalidate><div class="form-heading"><h2>Giriş yapın</h2><p>Kurulumda belirlediğiniz kullanıcı adı ve şifreyle giriş yapın.</p></div><div class="field"><label for="username">Kullanıcı adı</label><input id="username" name="username" autocomplete="username" spellcheck="false" required maxlength="60"></div><div class="field"><label for="password">Şifre</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"></div><button class="btn btn-primary" type="submit">Giriş yap ' . $this->icon('arrow') . '</button></form><aside class="form-aside"><span class="eyebrow">Güvenlik</span><h2>Oturum bu tarayıcıda açılır.</h2><p>Ortak kullanılan bilgisayarlarda işiniz bitince “Çıkış yap” düğmesini kullanın. Art arda hatalı denemelerde giriş bir süre kilitlenir.</p></aside></div><div id="admin-workspace" hidden></div></div>';
