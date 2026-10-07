@@ -1,6 +1,6 @@
 # Altındaş demo5 — uygulama planı
 
-Kullanıcı kararı, 7 Ekim 2026: Website2/ornekler/ornek3.html temel alınır. Gri saha panosu estetiği, sarı vurgu ve koyu ölçüm paneli korunur. Referans logoları tek dikey sütunda yavaş ve sürekli kayar; durdurma düğmesi ve fareyle durma yoktur (kullanıcı kararı, 7 Ekim 2026). “Hareketi azalt” tercihinde sabit liste gösterilir. Her proje kısa özetli karttan kendi detay sayfasına açılır. Yayın hedefi Ech0riath/altindas-demo5, GitHub Pages.
+Kullanıcı kararı, 7 Ekim 2026: Website2/ornekler/ornek3.html temel alınır. Gri saha panosu estetiği, sarı vurgu ve koyu ölçüm paneli korunur. Referans logoları tek dikey sütunda yavaş ve sürekli kayar; durdurma düğmesi ve fareyle durma yoktur (kullanıcı kararı, 7 Ekim 2026). “Hareketi azalt” tercihinde sabit liste gösterilir. Her proje kısa özetli karttan kendi detay sayfasına açılır. Kaynak depo Ech0riath/altindas-demo5. Yayın: Hostinger, alan adının `/demo/` klasörü (PHP + MySQL; kullanıcı kararı, 7 Ekim 2026 — beğenilince ana site olacak) ve GitHub Pages statik demosu.
 
 ## Tasarım
 
@@ -22,15 +22,15 @@ Araç seti yerel olarak indirildi: wilwaldon/Claude-Code-Frontend-Design-Toolkit
 
 ## Uygulama
 
-Bağımlılıksız Node statik üretim. Aynı üstbilgi, altbilgi ve tasarım tokenları bütün sayfalarda kullanılır. /altindas-demo5/ tek merkezden uygulanır. GitHub Pages sunucu tarafı form işlemediği için keşif formu okunabilir WhatsApp mesajı hazırlar; gönderme işlemini ziyaretçi WhatsApp'ta tamamlar. Sahte başarı bildirimi yoktur.
+Sayfa şablonları tek yerde: `app/site.php` (bağımlılıksız PHP 8.1+). Hostinger’da istek başına MySQL verisiyle çalışır (`web/index.php`, `app/bootstrap.php`); GitHub Pages için `scripts/export.php` aynı şablonları `src/content.json` ile statik HTML’e çevirir. Tasarım değişikliği yalnız `app/site.php`, `src/site.css`, `src/site.js` içinde yapılır. Aynı üstbilgi, altbilgi ve tasarım tokenları bütün sayfalarda kullanılır. Taban yol Pages’te `/altindas-demo5/`, Hostinger’da kurulduğu klasörden otomatik bulunur. Keşif formu okunabilir WhatsApp mesajı hazırlar; gönderme işlemini ziyaretçi WhatsApp'ta tamamlar. Sahte başarı bildirimi yoktur.
 
 ## Yönetim paneli
 
-Kullanıcı kararı, 7 Ekim 2026: proje (bilgi + fotoğraf) ve mağaza ürünü (bilgi + fiyat) bir yönetim panelinden eklenir. Panel `/admin/` adresinde, bağımlılıksız tarayıcı kodudur (`src/admin.js`). Kullanıcının ince ayarlı GitHub anahtarıyla `src/content.json` ve `public/assets/...` dosyalarını `main` dalına tek commit olarak yazar; yayın mevcut Pages iş akışıyla olur. Mağaza ödeme almaz, WhatsApp sipariş mesajı hazırlar. Panelin yazdığı JSON biçimi (`JSON.stringify(data, null, 2)`) korunur; elle düzenlemede de aynı biçim kullanılır. Yasaklı ifade kuralları `src/content-rules.js` içinde tek yerdedir.
+Kullanıcı kararı, 7 Ekim 2026: proje (bilgi + fotoğraf) ve mağaza ürünü (bilgi + fiyat) bir yönetim panelinden eklenir. Panel `/admin/` adresinde, bağımlılıksız tarayıcı kodudur (`src/admin.js`). Hostinger’da kullanıcı adı/şifreyle `admin/api` üzerinden MySQL’e ve `uploads/` klasörüne yazar (`app/admin.php`, `app/store.php`). Pages’te kullanıcının ince ayarlı GitHub anahtarıyla `src/content.json` ve `public/assets/...` dosyalarını `main` dalına tek commit olarak yazar. Hostinger veritabanı ve `app/config.php` git’e girmez; hPanel bilgileri depoya yazılmaz. Mağaza ödeme almaz, WhatsApp sipariş mesajı hazırlar. Panelin yazdığı JSON biçimi (`JSON.stringify(data, null, 2)`) korunur; elle düzenlemede de aynı biçim kullanılır. Yasaklı ifade kuralları `src/content-rules.js` içinde tek yerdedir.
 
 ## Doğrulama ve yayın
 
-Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, logo kayması, form kontrolü → GitHub Pages yayını → canlı URL doğrulama.
+Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, logo kayması, form kontrolü → GitHub Pages yayını ve `hostinger` dalı paketi → canlı URL doğrulama. Şablon değişikliğinde Pages çıktısı ve Hostinger çıktısı (`SITE_BASE`/`SITE_ORIGIN` ile) `check.mjs`’ten geçmelidir.
 
 ## Kaynak sınırları
 

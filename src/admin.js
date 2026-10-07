@@ -1,10 +1,13 @@
-// Yönetim paneli: GitHub Pages sunucu tarafı kod çalıştırmadığı için panel,
-// kullanıcının ince ayarlı GitHub anahtarıyla doğrudan depoya tek bir commit
-// yazar. Ardından mevcut Pages iş akışı siteyi derleyip yayınlar.
+// Yönetim paneli. İki sunucu tarafıyla çalışır (data-backend):
+// - "github" (GitHub Pages): sunucu kodu olmadığı için kullanıcının ince
+//   ayarlı GitHub anahtarıyla depoya tek commit yazar; Pages iş akışı yayınlar.
+// - "php" (Hostinger): kullanıcı adı/şifreyle oturum açar, kayıtlar
+//   admin/api üzerinden MySQL'e yazılır ve hemen yayına girer.
 import { bannedLabelsTr, findBannedPhrase } from "./content-rules.js";
 
 const app = document.getElementById("admin-app");
 const cfg = { ...app.dataset };
+const PHP = cfg.backend === "php";
 const API = "https://api.github.com";
 const repoPath = `/repos/${cfg.owner}/${cfg.repo}`;
 const CONTENT = "src/content.json";
@@ -19,17 +22,20 @@ const KINDS = {
     noun: "proje",
     title: "Projeler",
     route: "projeler/",
-    dir: "assets/projects/",
     add: "Yeni proje ekle",
   },
   products: {
     noun: "ürün",
     title: "Mağaza ürünleri",
     route: "magaza/",
-    dir: "assets/products/",
     add: "Yeni ürün ekle",
   },
 };
+// Yeni fotoğrafların yazıldığı klasörler. Hostinger'da git ile gelen
+// assets/ klasörüne dokunulmaz; panel yüklemeleri uploads/ altına gider.
+const DIRS = PHP
+  ? { projects: "uploads/projects/", products: "uploads/products/", references: "uploads/references/" }
+  : { projects: "assets/projects/", products: "assets/products/", references: "assets/references/" };
 const MANAGED_DIRS = [
   "assets/projects/",
   "assets/products/",
@@ -57,7 +63,7 @@ const MAX_GALLERY = 12;
 const PHOTO = { maxWidth: 1600, maxHeight: 1600 };
 const LOGO = { maxWidth: 480, maxHeight: 200, logo: true };
 
-const session = { token: null, user: null };
+const session = { token: null, user: null, csrf: null };
 let repoState = null;
 const ui = { tab: "projects", mode: "list", form: null, order: null };
 let busy = false;
@@ -114,7 +120,7 @@ function slugify(text) {
     .replace(/ş/g, "s")
     .replace(/ü/g, "u")
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60)
@@ -239,13 +245,46 @@ async function gh(path, { method = "GET", body } = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+// Hostinger sunucusundaki panel API'si (app/admin.php).
+async function server(action, { method = "GET", json, form } = {}) {
+  let res;
+  try {
+    res = await fetch(`${cfg.api}/${action}`, {
+      method,
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        ...(method === "GET" ? {} : { "X-CSRF-Token": session.csrf ?? "" }),
+        ...(json ? { "Content-Type": "application/json" } : {}),
+      },
+      body: json ? JSON.stringify(json) : form,
+    });
+  } catch {
+    throw new ApiError(
+      0,
+      "Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+    );
+  }
+  const info = await res.json().catch(() => ({}));
+  if (info.csrf) session.csrf = info.csrf;
+  if (!res.ok)
+    throw new ApiError(
+      res.status,
+      res.status === 413
+        ? "Fotoğraflar sunucunun kabul ettiği boyutu aşıyor. Daha az fotoğrafla tekrar deneyin."
+        : info.error || `Sunucu hatası (${res.status}). Lütfen tekrar deneyin.`,
+    );
+  return info;
+}
+
 function explain(err) {
   if (err instanceof InputError) return err.message;
   if (!(err instanceof ApiError)) {
     console.error(err);
     return "Beklenmeyen bir hata oluştu: " + err.message;
   }
-  if (err.status === 0) return err.message;
+  if (err.status === 0 || PHP) return err.message;
   if (err.status === 401)
     return "Anahtar geçersiz ya da süresi dolmuş. Yeni bir anahtar oluşturup tekrar bağlanın.";
   if (err.status === 403 && err.rateLimited)
@@ -518,7 +557,7 @@ function preview(entry) {
   else {
     img.src = cfg.base + entry.src;
     img.addEventListener("error", () => {
-      if (img.dataset.fallback) {
+      if (PHP || img.dataset.fallback) {
         img.replaceWith(h("span", { class: "admin-thumb-empty" }, "Önizleme yok"));
         return;
       }
@@ -530,10 +569,21 @@ function preview(entry) {
 }
 
 // ---------------------------------------------------------------- session
+async function loadState() {
+  if (!PHP) return loadRepo();
+  const state = await server("state");
+  session.user = state.user;
+  return { data: state.data };
+}
+
 async function connect() {
   setStatus("Bağlanılıyor…", "progress");
-  session.user = await gh("/user");
-  repoState = await loadRepo();
+  if (!PHP) session.user = await gh("/user");
+  repoState = await loadState();
+  showWorkspace();
+}
+
+function showWorkspace() {
   loginEl.hidden = true;
   workspace.hidden = false;
   ui.mode = "list";
@@ -544,31 +594,102 @@ async function connect() {
   focusHeading();
 }
 
-function logout() {
-  if (!leaveEditor()) return;
-  watchId++;
-  clearToken();
-  session.token = null;
+function showLogin(message, kind = "info") {
   session.user = null;
   repoState = null;
+  ui.mode = "list";
+  ui.form = null;
+  ui.order = null;
   workspace.replaceChildren();
   workspace.hidden = true;
   loginEl.hidden = false;
   loginForm.reset();
-  setStatus("Çıkış yapıldı. Anahtar bu tarayıcıdan silindi.", "info");
-  loginForm.querySelector("#token").focus();
+  setStatus(message, kind);
+  loginForm.querySelector("input")?.focus();
+}
+
+async function logout() {
+  if (!leaveEditor()) return;
+  watchId++;
+  if (PHP) {
+    try {
+      await server("logout", { method: "POST" });
+      await server("state").catch(() => {});
+    } catch (err) {
+      fail(err);
+      return;
+    }
+    showLogin("Çıkış yapıldı.");
+    return;
+  }
+  clearToken();
+  session.token = null;
+  showLogin("Çıkış yapıldı. Anahtar bu tarayıcıdan silindi.");
+}
+
+// Hata mesajını gösterir; Hostinger oturumu düştüyse giriş ekranına döner.
+function fail(err) {
+  if (PHP && err instanceof ApiError && err.status === 401) {
+    if (ui.form) ui.form.dirty = false;
+    showLogin("Oturumun süresi doldu. Lütfen yeniden giriş yapın.", "error");
+    return;
+  }
+  setStatus(explain(err), "error");
+}
+
+// Bir işlemi kalıcı hâle getirir. GitHub'da commit, Hostinger'da API isteği.
+async function persist(message, op, uploads = []) {
+  if (!PHP) return { sha: await commit(message, (data) => applyOp(data, op), uploads) };
+  const { check, ...wire } = op;
+  const body = new FormData();
+  body.append("op", JSON.stringify(wire));
+  body.append("paths", JSON.stringify(uploads.map((u) => u.path)));
+  for (const u of uploads) body.append("files[]", u.blob, u.path.split("/").pop());
+  setStatus(
+    uploads.length ? "Fotoğraflar yükleniyor ve kaydediliyor…" : "Değişiklik kaydediliyor…",
+    "progress",
+  );
+  const state = await server("save", { method: "POST", form: body });
+  repoState = { data: state.data };
+  return {};
+}
+
+function published(result, href) {
+  if (PHP)
+    setStatus("Kaydedildi; değişiklik sitede yayında.", "success", {
+      href,
+      label: "Sayfayı aç ↗",
+    });
+  else watchDeploy(result.sha, href);
+}
+
+function applyOp(data, op) {
+  if (op.type === "upsert") {
+    op.check?.(data);
+    upsert(data, op);
+  } else if (op.type === "delete") {
+    data[op.kind] = data[op.kind].filter((x) => x.slug !== op.slug);
+    if (op.kind === "projects")
+      data.references = data.references.filter((r) => r.project !== op.slug);
+  } else if (op.type === "reorder") {
+    const rank = new Map(op.slugs.map((s, i) => [s, i]));
+    // Bu arada eklenmiş kayıtlar, yeni kayıtlar gibi en üstte kalır.
+    data[op.kind] = [...data[op.kind]].sort(
+      (a, b) => (rank.get(a.slug) ?? -1) - (rank.get(b.slug) ?? -1),
+    );
+  }
 }
 
 async function refresh() {
   if (busy || !leaveEditor()) return;
   setBusy(true);
   try {
-    setStatus("Depo yeniden okunuyor…", "progress");
-    repoState = await loadRepo();
+    setStatus("İçerik yeniden yükleniyor…", "progress");
+    repoState = await loadState();
     ui.order = null;
     setStatus("Güncel içerik yüklendi.", "success");
   } catch (err) {
-    setStatus(explain(err), "error");
+    fail(err);
   } finally {
     setBusy(false);
   }
@@ -602,17 +723,21 @@ function render() {
       h(
         "p",
         {},
-        h("strong", {}, "@" + session.user.login),
-        " olarak bağlısınız · ",
-        h(
-          "a",
-          {
-            href: `https://github.com/${cfg.owner}/${cfg.repo}`,
-            target: "_blank",
-            rel: "noopener noreferrer",
-          },
-          `${cfg.owner}/${cfg.repo} ↗`,
-        ),
+        PHP
+          ? [h("strong", {}, session.user.login), " olarak giriş yaptınız"]
+          : [
+              h("strong", {}, "@" + session.user.login),
+              " olarak bağlısınız · ",
+              h(
+                "a",
+                {
+                  href: `https://github.com/${cfg.owner}/${cfg.repo}`,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                },
+                `${cfg.owner}/${cfg.repo} ↗`,
+              ),
+            ],
       ),
       h(
         "div",
@@ -799,20 +924,15 @@ async function saveOrder(kind) {
   if (busy || ui.order?.kind !== kind) return;
   const slugs = ui.order.slugs;
   setBusy(true);
-  let sha;
+  let result;
   try {
-    sha = await commit(
-      `Panel: ${KINDS[kind].noun} sıralaması güncellendi`,
-      (data) => {
-        const rank = new Map(slugs.map((s, i) => [s, i]));
-        // Items added elsewhere meanwhile stay on top, as new items do.
-        data[kind] = [...data[kind]].sort(
-          (a, b) => (rank.get(a.slug) ?? -1) - (rank.get(b.slug) ?? -1),
-        );
-      },
-    );
+    result = await persist(`Panel: ${KINDS[kind].noun} sıralaması güncellendi`, {
+      type: "reorder",
+      kind,
+      slugs,
+    });
   } catch (err) {
-    setStatus(explain(err), "error");
+    fail(err);
     return;
   } finally {
     setBusy(false);
@@ -820,7 +940,7 @@ async function saveOrder(kind) {
   ui.order = null;
   render();
   focusHeading();
-  watchDeploy(sha, pageUrl(kind));
+  published(result, pageUrl(kind));
 }
 
 async function removeItem(kind, item) {
@@ -833,20 +953,15 @@ async function removeItem(kind, item) {
   )
     return;
   setBusy(true);
-  let sha;
+  let result;
   try {
-    sha = await commit(
-      `Panel: ${k.noun} silindi — ${item.title}`,
-      (data) => {
-        data[kind] = data[kind].filter((x) => x.slug !== item.slug);
-        if (kind === "projects")
-          data.references = data.references.filter(
-            (r) => r.project !== item.slug,
-          );
-      },
-    );
+    result = await persist(`Panel: ${k.noun} silindi — ${item.title}`, {
+      type: "delete",
+      kind,
+      slug: item.slug,
+    });
   } catch (err) {
-    setStatus(explain(err), "error");
+    fail(err);
     return;
   } finally {
     setBusy(false);
@@ -854,7 +969,7 @@ async function removeItem(kind, item) {
   ui.order = null;
   render();
   focusHeading();
-  watchDeploy(sha, pageUrl(kind));
+  published(result, pageUrl(kind));
 }
 
 // ---------------------------------------------------------------- editor
@@ -1740,7 +1855,13 @@ function renderEditor(form) {
               ? "Yeni proje"
               : "Yeni ürün",
         ),
-        h("p", {}, "Zorunlu alanlar işaretlidir. Kaydettiğinizde site birkaç dakika içinde güncellenir."),
+        h(
+          "p",
+          {},
+          PHP
+            ? "Zorunlu alanlar işaretlidir. Kaydettiğinizde değişiklik sitede hemen görünür."
+            : "Zorunlu alanlar işaretlidir. Kaydettiğinizde site birkaç dakika içinde güncellenir.",
+        ),
       ),
       button("← Listeye dön", closeEditor, "admin-plain"),
     ),
@@ -1894,9 +2015,9 @@ function buildItem(form) {
     }
     return entry.src;
   };
-  const image = place(model.cover, KINDS[kind].dir);
+  const image = place(model.cover, DIRS[kind]);
   const gallery = model.gallery.map((g) => ({
-    src: place(g, KINDS[kind].dir),
+    src: place(g, DIRS[kind]),
     alt: g.alt.trim(),
     width: g.upload?.width ?? g.width ?? 1600,
     height: g.upload?.height ?? g.height ?? 1200,
@@ -1928,7 +2049,7 @@ function buildItem(form) {
     };
     const ref = model.reference;
     reference = ref.enabled
-      ? { name: ref.name.trim(), logo: place(ref.logo, "assets/references/") }
+      ? { name: ref.name.trim(), logo: place(ref.logo, DIRS.references) }
       : null;
   } else {
     item = {
@@ -1953,16 +2074,14 @@ function buildItem(form) {
   return { item, uploads, reference };
 }
 
-function upsert(data, form, item, reference) {
-  const list = data[form.kind];
-  const index = list.findIndex(
-    (x) => x.slug === (form.original?.slug ?? item.slug),
-  );
-  if (form.original && index === -1)
+function upsert(data, { kind, original, item, reference }) {
+  const list = data[kind];
+  const index = list.findIndex((x) => x.slug === (original ?? item.slug));
+  if (original && index === -1)
     throw new InputError(
       "Bu kayıt siz düzenlerken başka bir yerden silinmiş. “Yenile” ile listeyi güncelleyin.",
     );
-  if (!form.original && index !== -1)
+  if (!original && index !== -1)
     throw new InputError("Bu sayfa adresi başka bir kayıtta kullanılıyor.");
   const merged = { ...item };
   // Keeps fields the panel does not manage (added by hand in content.json).
@@ -1971,7 +2090,7 @@ function upsert(data, form, item, reference) {
       if (!(key in merged) && key !== "draft") merged[key] = value;
   if (index === -1) list.unshift(merged);
   else list[index] = merged;
-  if (form.kind !== "projects") return;
+  if (kind !== "projects") return;
   const at = data.references.findIndex((r) => r.project === item.slug);
   if (!reference) {
     if (at !== -1) data.references.splice(at, 1);
@@ -2003,12 +2122,19 @@ async function save(form, formEl) {
   const k = KINDS[form.kind];
   setBusy(true);
   try {
-    const sha = await commit(
+    const result = await persist(
       `Panel: ${k.noun} ${form.original ? "güncellendi" : "eklendi"} — ${item.title}`,
-      (data) => {
-        const fresh = validate(form, data);
-        if (fresh.length) throw new InputError(fresh[0].message);
-        upsert(data, form, item, reference);
+      {
+        type: "upsert",
+        kind: form.kind,
+        original: form.original?.slug ?? null,
+        item,
+        reference,
+        // GitHub'da başkası araya kayıt yazdıysa güncel veriyle yeniden denetler.
+        check: (data) => {
+          const fresh = validate(form, data);
+          if (fresh.length) throw new InputError(fresh[0].message);
+        },
       },
       uploads,
     );
@@ -2025,16 +2151,49 @@ async function save(form, formEl) {
         "Taslak kaydedildi. Sitede gösterilmez; yayımlamak için taslak işaretini kaldırıp kaydedin.",
         "success",
       );
-    } else watchDeploy(sha, pageUrl(form.kind, item));
+    } else published(result, pageUrl(form.kind, item));
   } catch (err) {
     setBusy(false);
-    setStatus(explain(err), "error");
+    fail(err);
   }
 }
 
 // ---------------------------------------------------------------- start
+async function phpLogin() {
+  const username = loginForm.querySelector("#username");
+  const password = loginForm.querySelector("#password");
+  if (!username.value.trim() || !password.value) {
+    setStatus("Kullanıcı adı ve şifreyi yazın.", "error");
+    (username.value.trim() ? password : username).focus();
+    return;
+  }
+  const submit = loginForm.querySelector("[type=submit]");
+  submit.disabled = true;
+  setStatus("Giriş yapılıyor…", "progress");
+  try {
+    const state = await server("login", {
+      method: "POST",
+      json: { username: username.value.trim(), password: password.value },
+    });
+    session.user = state.user;
+    repoState = { data: state.data };
+    password.value = "";
+    showWorkspace();
+  } catch (err) {
+    setStatus(explain(err), "error");
+    password.value = "";
+    password.focus();
+  } finally {
+    submit.disabled = false;
+  }
+}
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (PHP) {
+    phpLogin();
+    return;
+  }
   const input = loginForm.querySelector("#token");
   const value = input.value.trim();
   if (!value) {
@@ -2065,14 +2224,24 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 
-const saved = readToken();
-if (saved) {
-  session.token = saved;
+if (PHP) {
+  // Açık oturum varsa doğrudan panele geçer; yoksa giriş için CSRF anahtarını alır.
   connect().catch((err) => {
-    session.token = null;
-    if (err instanceof ApiError && err.status === 401) clearToken();
     loginEl.hidden = false;
     workspace.hidden = true;
-    setStatus(explain(err), "error");
+    if (err instanceof ApiError && err.status === 401) setStatus("");
+    else setStatus(explain(err), "error");
   });
+} else {
+  const saved = readToken();
+  if (saved) {
+    session.token = saved;
+    connect().catch((err) => {
+      session.token = null;
+      if (err instanceof ApiError && err.status === 401) clearToken();
+      loginEl.hidden = false;
+      workspace.hidden = true;
+      setStatus(explain(err), "error");
+    });
+  }
 }

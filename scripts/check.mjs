@@ -10,8 +10,9 @@ const project = path.resolve(
   "..",
 );
 const root = path.resolve(project, process.argv[2] || "dist");
-const base = "/altindas-demo5/";
-const origin = "https://ech0riath.github.io";
+// Hostinger çıktısı denetlenirken SITE_BASE / SITE_ORIGIN ile değiştirilir.
+const base = process.env.SITE_BASE || "/altindas-demo5/";
+const origin = process.env.SITE_ORIGIN || "https://ech0riath.github.io";
 const errors = [];
 const counts = { pages: 0, references: 0, images: 0, structuredData: 0 };
 const fail = (file, message) =>

@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "php scripts/export.php",
+    "check": "node scripts/check.mjs",
     "dev": "node scripts/serve.mjs",
     "preview": "node scripts/serve.mjs",
-    "check": "node scripts/check.mjs"
+    "package:hostinger": "sh scripts/package-hostinger.sh"
   },
   "engines": {
     "node": ">=22"
