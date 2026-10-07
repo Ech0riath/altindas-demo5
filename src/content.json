@@ -513,7 +513,25 @@
       "wordmarkSmall": "KONUT YAPI KOOPERATİFİ"
     }
   ],
-  "products": [],
+  "products": [
+    {
+      "slug": "2-5mm-nya",
+      "title": "2,5mm NYA",
+      "category": "Kablo",
+      "brand": "Öznur Kablo",
+      "sku": "nya25",
+      "price": 2500,
+      "vat": "dahil",
+      "unit": "Adet",
+      "stock": "Stokta",
+      "summary": "2,5mm2 Tek damar bakır iletken.",
+      "description": "",
+      "specs": [],
+      "image": "",
+      "imageAlt": "",
+      "gallery": []
+    }
+  ],
   "about": {
     "intro": "Aliağa'dan sahaya uzanan mühendislik.",
     "paragraphs": [
