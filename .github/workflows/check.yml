@@ -1,0 +1,22 @@
+name: Check
+# Kod denetimi: PHP sözdizimi, şablon çıktısı (check.mjs) ve Hostinger paketi.
+# Hiçbir yere yayın yapmaz; Hostinger'a yükleme paketle elle yapılır.
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: PHP syntax
+        run: for f in app/*.php web/index.php scripts/export.php; do php -l "$f"; done
+      - name: Build and check pages
+        run: npm run build && npm run check
+      - name: Build Hostinger package
+        run: sh scripts/package-hostinger.sh
