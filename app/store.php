@@ -82,6 +82,39 @@ final class Store
             attempted_at DATETIME NOT NULL,
             KEY ip_time (ip, attempted_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        'CREATE TABLE IF NOT EXISTS settings (
+            name VARCHAR(60) NOT NULL PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        'CREATE TABLE IF NOT EXISTS orders (
+            id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            reference VARCHAR(20) NOT NULL UNIQUE,
+            status VARCHAR(20) NOT NULL DEFAULT \'bekliyor\',
+            mode VARCHAR(10) NOT NULL,
+            token VARCHAR(255) NULL,
+            product_slug VARCHAR(80) NOT NULL,
+            product_title VARCHAR(160) NOT NULL,
+            sku VARCHAR(80) NOT NULL DEFAULT \'\',
+            unit VARCHAR(40) NOT NULL DEFAULT \'adet\',
+            quantity INT NOT NULL,
+            unit_price DECIMAL(12,2) NOT NULL,
+            total DECIMAL(12,2) NOT NULL,
+            buyer_name VARCHAR(120) NOT NULL,
+            email VARCHAR(160) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            city VARCHAR(60) NOT NULL,
+            district VARCHAR(60) NOT NULL,
+            address VARCHAR(400) NOT NULL,
+            note VARCHAR(500) NOT NULL DEFAULT \'\',
+            ip VARCHAR(45) NOT NULL,
+            payment_id VARCHAR(40) NOT NULL DEFAULT \'\',
+            error VARCHAR(400) NOT NULL DEFAULT \'\',
+            created_at DATETIME NOT NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY token (token(64)),
+            KEY ip_time (ip, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
     ];
 
     public function __construct(public readonly PDO $db)
@@ -108,6 +141,27 @@ final class Store
         foreach (self::SCHEMA as $sql) {
             $this->db->exec($sql);
         }
+    }
+
+    /** Ayar değeri (JSON). Tablo henüz yoksa (eski kurulum) boş döner. */
+    public function setting(string $name): array
+    {
+        try {
+            $stmt = $this->db->prepare('SELECT value FROM settings WHERE name = ?');
+            $stmt->execute([$name]);
+            return json_decode((string) $stmt->fetchColumn(), true) ?: [];
+        } catch (PDOException $e) {
+            if ($e->getCode() === '42S02') {
+                return [];
+            }
+            throw $e;
+        }
+    }
+
+    public function saveSetting(string $name, array $value): void
+    {
+        $this->db->prepare('INSERT INTO settings (name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)')
+            ->execute([$name, self::json($value)]);
     }
 
     public function isEmpty(): bool

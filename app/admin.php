@@ -79,6 +79,7 @@ final class Admin
                 'products' => $data['products'],
                 'references' => $data['references'],
             ],
+            'payments' => $this->app->payments()->adminState(),
         ];
     }
 
@@ -103,6 +104,8 @@ final class Admin
                 'login' => $this->login(),
                 'logout' => $this->logout(),
                 'save' => $this->save(),
+                'payments' => $this->savePayments(),
+                'order-check' => $this->checkOrder(),
                 default => self::json(404, ['error' => 'Bulunamadı.']),
             };
         } catch (InputError $e) {
@@ -145,6 +148,8 @@ final class Admin
             $db->prepare('UPDATE admins SET password_hash = ? WHERE username = ?')->execute([password_hash($password, PASSWORD_DEFAULT), $row['username']]);
         }
         $db->prepare('DELETE FROM login_attempts WHERE ip = ?')->execute([$ip]);
+        // Sonradan eklenen tablolar (ör. siparişler) eski kurulumlarda girişte oluşturulur.
+        $this->app->store()->install();
         session_regenerate_id(true);
         $_SESSION['admin'] = $row['username'];
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
@@ -195,6 +200,20 @@ final class Admin
                 @unlink($this->app->root . '/' . $path);
             }
         }
+        self::json(200, $this->state());
+    }
+
+    private function savePayments(): never
+    {
+        $this->requireUser();
+        $this->app->payments()->saveSettings($this->body());
+        self::json(200, $this->state());
+    }
+
+    private function checkOrder(): never
+    {
+        $this->requireUser();
+        $this->app->payments()->recheck((string) ($this->body()['reference'] ?? ''));
         self::json(200, $this->state());
     }
 

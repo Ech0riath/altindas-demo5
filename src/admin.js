@@ -573,8 +573,11 @@ async function loadState() {
   if (!PHP) return loadRepo();
   const state = await server("state");
   session.user = state.user;
-  return { data: state.data };
+  return fromServer(state);
 }
+
+// Hostinger yanıtı: içerik + kartla ödeme ayarları ve siparişler.
+const fromServer = (state) => ({ data: state.data, payments: state.payments });
 
 async function connect() {
   setStatus("Bağlanılıyor…", "progress");
@@ -650,7 +653,7 @@ async function persist(message, op, uploads = []) {
     "progress",
   );
   const state = await server("save", { method: "POST", form: body });
-  repoState = { data: state.data };
+  repoState = fromServer(state);
   return {};
 }
 
@@ -716,6 +719,12 @@ function render() {
     projects: repoState.data.projects.length,
     products: repoState.data.products.length,
   };
+  const tabs = Object.entries(KINDS).map(([kind, k]) => [
+    kind,
+    `${k.title} (${counts[kind]})`,
+  ]);
+  if (repoState.payments)
+    tabs.push(["orders", `Siparişler (${repoState.payments.orders.length})`]);
   workspace.replaceChildren(
     h(
       "div",
@@ -753,16 +762,17 @@ function render() {
         role: "group",
         "aria-label": "İçerik türü",
       },
-      Object.entries(KINDS).map(([kind, k]) =>
-        button(
-          `${k.title} (${counts[kind]})`,
-          () => switchTab(kind),
-          ui.tab === kind ? "active" : "",
-          { "aria-pressed": String(ui.tab === kind) },
-        ),
+      tabs.map(([kind, label]) =>
+        button(label, () => switchTab(kind), ui.tab === kind ? "active" : "", {
+          "aria-pressed": String(ui.tab === kind),
+        }),
       ),
     ),
-    ui.mode === "edit" ? renderEditor(ui.form) : renderList(ui.tab),
+    ui.mode === "edit"
+      ? renderEditor(ui.form)
+      : ui.tab === "orders"
+        ? renderOrders()
+        : renderList(ui.tab),
   );
 }
 
@@ -898,6 +908,235 @@ function renderList(kind) {
             ? "Henüz ürün yok. İlk ürünü eklediğinizde mağaza sayfası otomatik oluşur."
             : "Henüz proje yok.",
         ),
+  );
+}
+
+// ---------------------------------------------------------------- orders (Hostinger)
+const ORDER_BADGE = {
+  odendi: "",
+  bekliyor: "draft",
+  basarisiz: "draft",
+  kontrol: "",
+};
+const dateFormat = new Intl.DateTimeFormat("tr-TR", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
+function renderOrders() {
+  const pay = repoState.payments;
+  const enabled = h("input", { id: "pay-enabled", type: "checkbox" });
+  enabled.checked = pay.enabled;
+  const apiKey = h("input", {
+    id: "pay-api",
+    autocomplete: "off",
+    spellcheck: "false",
+    maxlength: 120,
+    placeholder: pay.apiKeyHint ? `Kayıtlı (${pay.apiKeyHint})` : "sandbox-…",
+    "aria-describedby": "pay-api-help",
+  });
+  const secretKey = h("input", {
+    id: "pay-secret",
+    type: "password",
+    autocomplete: "off",
+    spellcheck: "false",
+    maxlength: 120,
+    placeholder: pay.secretKeySet ? "Kayıtlı" : "sandbox-…",
+    "aria-describedby": "pay-api-help",
+  });
+  const savePayments = async (clear = false) => {
+    if (busy) return;
+    if (
+      clear &&
+      !window.confirm(
+        "Kayıtlı iyzico anahtarları silinecek ve kartla ödeme kapanacak. Devam edilsin mi?",
+      )
+    )
+      return;
+    setBusy(true);
+    setStatus("Ödeme ayarları kaydediliyor…", "progress");
+    try {
+      const state = await server("payments", {
+        method: "POST",
+        json: clear
+          ? { enabled: false, clear: true }
+          : {
+              enabled: enabled.checked,
+              apiKey: apiKey.value.trim(),
+              secretKey: secretKey.value.trim(),
+            },
+      });
+      repoState = fromServer(state);
+      setBusy(false);
+      render();
+      setStatus(
+        repoState.payments.enabled
+          ? "Kaydedildi. Kartla ödeme mağazada test modunda açık."
+          : "Kaydedildi. Kartla ödeme kapalı; mağaza yalnız WhatsApp siparişi gösterir.",
+        "success",
+      );
+      focusHeading();
+    } catch (err) {
+      setBusy(false);
+      fail(err);
+    }
+  };
+  const settings = h(
+    "form",
+    {
+      class: "admin-section",
+      onsubmit: (e) => {
+        e.preventDefault();
+        savePayments();
+      },
+    },
+    h("h3", {}, "Kartla ödeme (iyzico)"),
+    h(
+      "p",
+      { class: "admin-help" },
+      "Mod: test (sandbox). Canlı ödeme bu sürümde kapalı; gerçek kartlardan çekim yapılmaz.",
+    ),
+    pay.curl
+      ? null
+      : h(
+          "p",
+          { class: "admin-errors" },
+          "Sunucuda PHP cURL eklentisi yok. hPanel → PHP Yapılandırması’ndan açmadan kartla ödeme çalışmaz.",
+        ),
+    h(
+      "div",
+      { class: "admin-check" },
+      enabled,
+      h(
+        "label",
+        { for: "pay-enabled" },
+        "Mağazada “Kartla satın alın” düğmesini göster ",
+        h("span", {}, "(KDV dahil fiyatlı ve stoktaki ürünlerde)"),
+      ),
+    ),
+    h(
+      "div",
+      { class: "form-row" },
+      h(
+        "div",
+        { class: "field" },
+        h("label", { for: "pay-api" }, "API anahtarı"),
+        apiKey,
+      ),
+      h(
+        "div",
+        { class: "field" },
+        h("label", { for: "pay-secret" }, "Gizli anahtar"),
+        secretKey,
+      ),
+    ),
+    h(
+      "p",
+      { class: "admin-help", id: "pay-api-help" },
+      "Anahtarlar sandbox-merchant.iyzipay.com → Ayarlar → Firma Ayarları sayfasındadır ve “sandbox-” ile başlar. Kayıtlı anahtarı korumak için alanı boş bırakın. Gizli anahtar sunucuda saklanır, tarayıcıya geri gönderilmez.",
+    ),
+    h(
+      "p",
+      { class: "admin-help" },
+      "Deneme için iyzico test kartı: 5528 7900 0000 0008 · son kullanma 12/30 · CVC 123.",
+    ),
+    h(
+      "div",
+      { class: "admin-inline-actions" },
+      h("button", { type: "submit", class: "btn btn-primary" }, "Ödeme ayarlarını kaydet"),
+      pay.apiKeyHint || pay.secretKeySet
+        ? button("Anahtarları sil", () => savePayments(true), "admin-plain danger")
+        : null,
+    ),
+  );
+  const recheck = async (order) => {
+    if (busy) return;
+    setBusy(true);
+    setStatus(`${order.reference} iyzico’dan sorgulanıyor…`, "progress");
+    try {
+      const state = await server("order-check", {
+        method: "POST",
+        json: { reference: order.reference },
+      });
+      repoState = fromServer(state);
+      const now = repoState.payments.orders.find(
+        (o) => o.reference === order.reference,
+      );
+      setBusy(false);
+      render();
+      setStatus(`${order.reference}: ${now?.statusText ?? "güncellendi"}.`, "success");
+      focusHeading();
+    } catch (err) {
+      setBusy(false);
+      fail(err);
+    }
+  };
+  const rows = pay.orders.map((o) =>
+    h(
+      "li",
+      { class: "admin-item admin-order" },
+      h(
+        "div",
+        { class: "admin-item-text" },
+        h(
+          "h3",
+          {},
+          `${o.product} × ${o.quantity} ${o.unit} · ${priceFormat.format(o.total)}`,
+        ),
+        h(
+          "p",
+          {},
+          [
+            o.reference,
+            dateFormat.format(new Date(o.createdAt.replace(" ", "T"))),
+            o.mode === "sandbox" ? "test" : "canlı",
+            o.paymentId ? `iyzico ödeme no ${o.paymentId}` : "",
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        ),
+        h("p", {}, `${o.buyer} · ${o.phone} · ${o.email}`),
+        h("p", {}, o.address),
+        o.note ? h("p", {}, `Not: ${o.note}`) : null,
+        o.error ? h("p", {}, `Bilgi: ${o.error}`) : null,
+        h(
+          "div",
+          { class: "admin-badges" },
+          h("span", { class: `admin-badge ${ORDER_BADGE[o.status] ?? ""}` }, o.statusText),
+        ),
+      ),
+      h(
+        "div",
+        { class: "admin-item-actions" },
+        o.status === "bekliyor"
+          ? button("Durumu sorgula", () => recheck(o), "admin-plain", {
+              "aria-label": `${o.reference}: ödeme durumunu iyzico’dan sorgula`,
+            })
+          : null,
+      ),
+    ),
+  );
+  return h(
+    "section",
+    { class: "admin-panel", "aria-labelledby": "list-title" },
+    h(
+      "div",
+      { class: "admin-list-head" },
+      h(
+        "div",
+        {},
+        h("h2", { id: "list-title", tabindex: "-1" }, "Siparişler"),
+        h(
+          "p",
+          {},
+          "Kartla verilen siparişler ve iyzico ödeme ayarları. Yalnız “Ödendi” durumundaki siparişlerin ödemesi iyzico’dan doğrulanmıştır.",
+        ),
+      ),
+    ),
+    settings,
+    rows.length
+      ? h("ol", { class: "admin-list" }, rows)
+      : h("p", { class: "admin-empty" }, "Henüz kartla verilmiş sipariş yok."),
   );
 }
 
@@ -2176,7 +2415,7 @@ async function phpLogin() {
       json: { username: username.value.trim(), password: password.value },
     });
     session.user = state.user;
-    repoState = { data: state.data };
+    repoState = fromServer(state);
     password.value = "";
     showWorkspace();
   } catch (err) {

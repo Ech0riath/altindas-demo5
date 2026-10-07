@@ -156,6 +156,8 @@ document.querySelectorAll("[data-order]").forEach((order) => {
   qty.closest(".order-qty").hidden = false;
   qty.addEventListener("input", update);
   order.addEventListener("submit", (e) => {
+    // Kartla ödeme açıksa form, seçilen miktarla ödeme sayfasına gider.
+    if (order.hasAttribute("action")) return;
     e.preventDefault();
     update();
     link.click();
