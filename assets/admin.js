@@ -246,10 +246,13 @@ async function gh(path, { method = "GET", body } = {}) {
 }
 
 // Hostinger sunucusundaki panel API'si (app/admin.php).
-async function server(action, { method = "GET", json, form } = {}) {
+async function server(action, { method = "GET", json, form } = {}, retried = false) {
   let res;
   try {
-    res = await fetch(`${cfg.api}/${action}`, {
+    // GET adresi her seferinde benzersizdir; sunucu ya da ara önbellek eski
+    // bir oturum yanıtını (ve eskimiş CSRF anahtarını) döndüremez.
+    const url = `${cfg.api}/${action}` + (method === "GET" ? `?_=${Date.now()}` : "");
+    res = await fetch(url, {
       method,
       cache: "no-store",
       credentials: "same-origin",
@@ -268,6 +271,14 @@ async function server(action, { method = "GET", json, form } = {}) {
   }
   const info = await res.json().catch(() => ({}));
   if (info.csrf) session.csrf = info.csrf;
+  // Anahtar eskimişse güncelini alıp işlemi bir kez daha dener. Oturum
+  // kapanmışsa ikinci deneme 401 döner ve panel giriş ekranına geçer.
+  if (res.status === 403 && method !== "GET" && !retried) {
+    await server("state").catch((err) => {
+      if (!(err instanceof ApiError && err.status === 401)) throw err;
+    });
+    return server(action, { method, json, form }, true);
+  }
   if (!res.ok)
     throw new ApiError(
       res.status,
@@ -614,10 +625,14 @@ async function logout() {
   if (PHP) {
     try {
       await server("logout", { method: "POST" });
+      // Yeni girişte kullanılacak CSRF anahtarını alır (yanıt 401'dir).
       await server("state").catch(() => {});
     } catch (err) {
-      fail(err);
-      return;
+      // Oturum zaten kapanmışsa çıkış tamamlanmış sayılır.
+      if (!(err instanceof ApiError && err.status === 401)) {
+        fail(err);
+        return;
+      }
     }
     showLogin("Çıkış yapıldı.");
     return;

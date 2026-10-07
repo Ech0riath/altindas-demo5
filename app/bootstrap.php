@@ -81,15 +81,27 @@ final class App
                 'backend' => 'php',
                 'host' => 'Hostinger',
                 'robots' => empty($this->config['indexable']) ? 'noindex,follow' : 'index,follow',
+                'assetVersion' => fn (string $path) => is_file($this->root . '/' . $path) ? substr(md5_file($this->root . '/' . $path), 0, 10) : null,
             ],
         );
     }
 }
 
+// Hostinger'ın "otomatik önbelleği" (LiteSpeed) PHP yanıtlarını da saklar.
+// Sayfalar veritabanından anlık üretildiği ve panel oturuma bağlı olduğu için
+// hiçbir PHP yanıtı sunucu önbelleğine alınmaz.
+const NO_SERVER_CACHE = 'X-LiteSpeed-Cache-Control: no-cache';
+const PRIVATE_HEADERS = [
+    'Cache-Control: no-store, no-cache, must-revalidate, private',
+    'Pragma: no-cache',
+    NO_SERVER_CACHE,
+];
+
 function send(int $status, string $type, string $body, array $headers = []): void
 {
     http_response_code($status);
     header('Content-Type: ' . $type);
+    header(NO_SERVER_CACHE);
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('X-Frame-Options: SAMEORIGIN');
@@ -151,7 +163,7 @@ function run(string $root): void
         $headers = [];
         if ($path === 'admin/') {
             $headers = [
-                'Cache-Control: no-store',
+                ...PRIVATE_HEADERS,
                 "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'; frame-ancestors 'none'",
             ];
         }
