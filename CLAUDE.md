@@ -30,7 +30,7 @@ Kullanıcı kararı, 7 Ekim 2026: proje (bilgi + fotoğraf) ve mağaza ürünü 
 
 ## Doğrulama ve yayın
 
-Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, logo kayması, form kontrolü → GitHub Pages yayını ve `hostinger` dalı paketi → canlı URL doğrulama. Şablon değişikliğinde Pages çıktısı ve Hostinger çıktısı (`SITE_BASE`/`SITE_ORIGIN` ile) `check.mjs`’ten geçmelidir.
+Build → üretilen tüm bağlantı/varlık kontrolleri → masaüstü/mobil tarayıcı incelemesi → menü, filtre, SSS, logo kayması, form kontrolü → GitHub Pages yayını ve Hostinger’a FTP yüklemesi (kullanıcı kararı, 7 Ekim 2026: güncellemeler FTP ile; bilgiler yalnız GitHub depo sırlarında `FTP_*`) → canlı URL doğrulama. Hostinger’ın otomatik sunucu önbelleği PHP yanıtlarını da saklar; PHP yanıtları `X-LiteSpeed-Cache-Control: no-cache` gönderir, panel istekleri önbelleğe takılmamalıdır. Şablon değişikliğinde Pages çıktısı ve Hostinger çıktısı (`SITE_BASE`/`SITE_ORIGIN` ile) `check.mjs`’ten geçmelidir.
 
 ## Kaynak sınırları
 

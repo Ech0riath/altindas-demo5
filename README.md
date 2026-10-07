@@ -27,13 +27,13 @@ npm run package:hostinger  # build/hostinger (Hostinger paketi)
 - `scripts/check.mjs`: denetimler. Hostinger çıktısı için `SITE_BASE` ve `SITE_ORIGIN` ile çalıştırılır.
 - `public/assets`: gerçek saha fotoğrafları, marka varlıkları ve lisanslı yerel fontlar.
 
-`main` dalına gönderilen her değişiklikte iki iş akışı çalışır: `pages.yml` Pages’e yayınlar; `hostinger.yml` şablonları denetleyip Hostinger paketini `hostinger` dalına yazar. Hostinger bu dalı hPanel Git ile `public_html/demo` klasörüne çeker. İki adres de demo olduğundan arama motorlarına `noindex,follow` verilir; Hostinger’da `app/config.php` içindeki `indexable` ayarı açılınca dizinlenir.
+`main` dalına gönderilen her değişiklikte iki iş akışı çalışır: `pages.yml` Pages’e yayınlar; `hostinger.yml` şablonları denetler, Hostinger paketini hazırlar, depo sırlarında FTP bilgileri varsa dosyaları FTP ile doğrudan `demo` klasörüne yükler ve aynı paketi `hostinger` dalına da yazar. İki adres de demo olduğundan arama motorlarına `noindex,follow` verilir; Hostinger’da `app/config.php` içindeki `indexable` ayarı açılınca dizinlenir.
 
 ## Hostinger kurulumu (bir kez)
 
 1. hPanel → **Gelişmiş → PHP Yapılandırması**: PHP 8.2 veya 8.3.
 2. hPanel → **Veritabanları → MySQL**: veritabanı ve kullanıcı oluşturun (hPanel şifresinden farklı bir şifreyle).
-3. hPanel → **Gelişmiş → Git**: depo `https://github.com/Ech0riath/altindas-demo5.git`, dal `hostinger`, klasör `demo` → **Oluştur**, ardından **Dağıt**. **Otomatik Dağıtım** webhook adresini GitHub’da depo **Settings → Webhooks** bölümüne ekleyin.
+3. Dosyaların yüklenmesi (FTP, önerilen): hPanel → **Dosyalar → FTP Hesapları**’ndaki bilgileri GitHub’da depo **Settings → Secrets and variables → Actions → New repository secret** ile üç sır olarak ekleyin: `FTP_SERVER` (FTP sunucusu, ör. `ftp.alanadi.com` ya da IP), `FTP_USERNAME`, `FTP_PASSWORD`. İş akışı FTPS’i dener, olmazsa FTP kullanır; `public_html/demo` klasörünü kendisi bulur (gerekirse `FTP_DIR` sırrıyla belirtilir). Yükleme yalnız paketteki dosyaları yazar; sunucudaki `app/config.php` ve `uploads/` korunur. Alternatif: hPanel → **Gelişmiş → Git** ile `hostinger` dalı `demo` klasörüne çekilebilir.
 4. `https://<alan-adı>/demo/admin/` adresi kurulum sihirbazını açar: veritabanı bilgileri ve yönetici hesabı girilir. Sihirbaz tabloları oluşturur, mevcut projeleri aktarır ve `app/config.php` dosyasını yazar; kurulumdan sonra kilitlenir.
 
 Yedekleme: MySQL verisi phpMyAdmin’den dışa aktarılabilir; panel yüklemeleri `demo/uploads/` klasöründedir. Bu iki şey git’te değil, sunucudadır.
