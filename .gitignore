@@ -5,3 +5,4 @@ qa-output/
 *.log
 .DS_Store
 dist/
+build/

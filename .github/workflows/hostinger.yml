@@ -1,0 +1,48 @@
+name: Hostinger package
+# main dalındaki her değişiklikte Hostinger paketini "hostinger" dalına yazar.
+# hPanel → Git, bu dalı public_html/demo klasörüne çeker (otomatik dağıtım
+# webhook'u açıksa her güncellemede kendiliğinden).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: hostinger
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check PHP syntax
+        run: for f in app/*.php web/index.php scripts/export.php; do php -l "$f"; done
+      - name: Verify templates
+        run: npm run build && npm run check
+      - name: Build package
+        run: sh scripts/package-hostinger.sh build/hostinger
+      - name: Publish to hostinger branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898237+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin hostinger >/dev/null; then
+            git fetch --depth=1 origin hostinger
+            git worktree add build/deploy FETCH_HEAD
+          else
+            git worktree add --detach build/deploy
+            git -C build/deploy checkout --orphan hostinger-new
+            git -C build/deploy rm -rfq .
+          fi
+          rsync -a --delete --exclude .git build/hostinger/ build/deploy/
+          cd build/deploy
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Paket değişmedi."
+            exit 0
+          fi
+          git commit -q -m "Hostinger paketi: ${GITHUB_SHA::7}"
+          git push origin HEAD:refs/heads/hostinger

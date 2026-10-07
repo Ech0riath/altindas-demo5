@@ -1,47 +1,60 @@
 # Altındaş Mühendislik & Elektrik — demo5
 
-[Canlı site](https://ech0riath.github.io/altindas-demo5/)
+- Hostinger (PHP + MySQL): alan adının `/demo/` klasörü — panelden yapılan kayıtlar anında yayına girer.
+- [GitHub Pages](https://ech0riath.github.io/altindas-demo5/) (statik demo): `src/content.json` ile üretilir.
 
 `ornek3.html` saha panosu tasarımından geliştirilen Türkçe kurumsal web sitesi. Yedi hizmet, proje dosyaları, mağaza, referanslar, kurumsal, iletişim, keşif ve SSS sayfaları aynı tasarım sistemini kullanır. Proje ve ürünler `/admin/` yönetim panelinden eklenir.
 
-## Çalıştırma
+## Yapı
 
-Node.js 22 veya üzeri yeterlidir. Üretim bağımlılığı yoktur.
+Bütün sayfa şablonları tek yerdedir: `app/site.php`. Aynı şablonlar iki biçimde çalışır:
+
+- **Hostinger:** `web/index.php` her isteği karşılar; projeler, ürünler ve referans logoları MySQL’den, hizmet/kurumsal/SSS metinleri `content.json`’dan okunur.
+- **GitHub Pages:** `scripts/export.php` şablonları `src/content.json` ile çalıştırıp `dist/` altına statik HTML yazar.
 
 ```sh
-npm run build
-npm run check
-npm run preview
+npm run build              # PHP 8.1+ ile dist/ (GitHub Pages çıktısı)
+npm run check              # bağlantı, semantik ve içerik denetimi (Node 22+)
+npm run preview            # http://127.0.0.1:4325/altindas-demo5/
+npm run package:hostinger  # build/hostinger (Hostinger paketi)
 ```
 
-Önizleme: `http://127.0.0.1:4325/altindas-demo5/`
-
-- `src/content.json`: hizmet, proje, referans logosu ve mağaza ürünü verileri. Panel bu dosyayı yazar.
-- `src/site.css`: responsive tasarım sistemi.
-- `src/site.js`: mobil menü, panel seçimi, logo hareketi, proje/ürün filtresi, form önizlemesi, sipariş miktarı, fotoğraf görüntüleyici.
-- `src/admin.js`, `src/admin.css`: yönetim paneli (yalnız `/admin/` sayfasında yüklenir).
+- `app/site.php`: sayfa şablonları. `app/store.php`: MySQL tabloları ve kayıt işlemleri. `app/admin.php`: oturum, giriş sınırı, CSRF, panel API’si, kurulum sihirbazı. `app/bootstrap.php`: rota çözümü.
+- `web/`: Hostinger giriş noktası, `.htaccess` kuralları, `uploads/` koruması.
+- `src/content.json`: hizmet, proje, referans ve ürün verileri (Pages’in kaynağı, Hostinger’ın ilk verisi).
+- `src/site.css`, `src/site.js`: tasarım sistemi ve etkileşimler. `src/admin.js`, `src/admin.css`: yönetim paneli.
 - `src/content-rules.js`: yasaklı ifade kuralları; hem `check.mjs` hem panel kullanır.
-- `scripts/build.mjs`: ortak sayfa şablonları ve statik üretim.
-- `scripts/check.mjs`: bağlantı, varlık, semantik ve temel yayın denetimleri.
+- `scripts/check.mjs`: denetimler. Hostinger çıktısı için `SITE_BASE` ve `SITE_ORIGIN` ile çalıştırılır.
 - `public/assets`: gerçek saha fotoğrafları, marka varlıkları ve lisanslı yerel fontlar.
 
-`main` dalına gönderilen değişiklikler GitHub Actions üzerinden Pages'e yayınlanır. Taban yol tek merkezden `/altindas-demo5/` olarak tanımlanır. Bu bir demo adresidir; arama motorları için `noindex,follow` kullanılır.
+`main` dalına gönderilen her değişiklikte iki iş akışı çalışır: `pages.yml` Pages’e yayınlar; `hostinger.yml` şablonları denetleyip Hostinger paketini `hostinger` dalına yazar. Hostinger bu dalı hPanel Git ile `public_html/demo` klasörüne çeker. İki adres de demo olduğundan arama motorlarına `noindex,follow` verilir; Hostinger’da `app/config.php` içindeki `indexable` ayarı açılınca dizinlenir.
+
+## Hostinger kurulumu (bir kez)
+
+1. hPanel → **Gelişmiş → PHP Yapılandırması**: PHP 8.2 veya 8.3.
+2. hPanel → **Veritabanları → MySQL**: veritabanı ve kullanıcı oluşturun (hPanel şifresinden farklı bir şifreyle).
+3. hPanel → **Gelişmiş → Git**: depo `https://github.com/Ech0riath/altindas-demo5.git`, dal `hostinger`, klasör `demo` → **Oluştur**, ardından **Dağıt**. **Otomatik Dağıtım** webhook adresini GitHub’da depo **Settings → Webhooks** bölümüne ekleyin.
+4. `https://<alan-adı>/demo/admin/` adresi kurulum sihirbazını açar: veritabanı bilgileri ve yönetici hesabı girilir. Sihirbaz tabloları oluşturur, mevcut projeleri aktarır ve `app/config.php` dosyasını yazar; kurulumdan sonra kilitlenir.
+
+Yedekleme: MySQL verisi phpMyAdmin’den dışa aktarılabilir; panel yüklemeleri `demo/uploads/` klasöründedir. Bu iki şey git’te değil, sunucudadır.
 
 ## İşlevler
 
-Referanslar tek dikey sütunda 48 saniyelik çevrimle kayar. Fare üzerine geldiğinde durur; durdurma/başlatma düğmesi vardır. Hareketi azaltma tercihinde varsayılan statiktir, ziyaretçi isterse başlatabilir.
+Referanslar tek dikey sütunda sürekli kayar (logo başına yaklaşık 9,6 saniye). Kullanıcı kararıyla durdurma düğmesi ve fareyle durma yoktur. İşletim sisteminde “hareketi azalt” tercihi açık ziyaretçilere logolar sabit liste olarak gösterilir.
 
 Proje kartları ilgili ayrıntı sayfalarına gider. Proje dizini kategoriye göre filtrelenebilir. Ana sayfadaki ölçüm paneli etkileşimli bir temsilî gösterimdir; canlı tesis verisi değildir.
 
-Keşif formu mesajı yalnız tarayıcıda hazırlar. Gönderilmeden önce önizleme gösterilir; ziyaretçi WhatsApp üzerinden gönderir. GitHub Pages üzerinde çalışmayan PHP formu veya gönderilmemiş talep için başarı bildirimi kullanılmaz.
+Keşif formu mesajı yalnız tarayıcıda hazırlar. Gönderilmeden önce önizleme gösterilir; ziyaretçi WhatsApp üzerinden gönderir. Gönderilmemiş talep için başarı bildirimi kullanılmaz.
 
 Gerçek saha fotoğrafı olmayan projelerde şematik çizimler açıkça etiketlidir. Dört Mevsim'in sağlanmış logosu bulunmadığından adı metin olarak yer alır. Müşteri yorumu, teyitsiz başarı sayacı ve fiyat üretilmez.
 
 ## Yönetim paneli
 
-Adres: `https://ech0riath.github.io/altindas-demo5/admin/` (arama motorlarına kapalı, site haritasında yok).
+Panel her iki adreste de `/admin/` altındadır (arama motorlarına kapalı, site haritasında yok). Arayüz aynıdır (`src/admin.js`); kayıt yolu sunucuya göre değişir.
 
-GitHub Pages sunucu tarafı kod çalıştırmadığı için panel tarayıcıda çalışır ve kaydı doğrudan GitHub API ile yapar:
+**Hostinger:** Kurulumda belirlenen kullanıcı adı ve şifreyle giriş yapılır. Kayıtlar `admin/api` üzerinden MySQL’e yazılır ve hemen yayına girer; fotoğraflar `uploads/` altına kaydedilir, kullanılmayan yüklemeler silinir, git ile gelen `assets/` dosyalarına dokunulmaz. Oturum çerezi `HttpOnly`, `SameSite=Strict`; her değişiklik isteği CSRF anahtarı ister; 15 dakikada 5 hatalı girişte o IP kilitlenir; yüklenen dosya türü sunucuda doğrulanır ve `uploads/` içinde betik çalıştırılmaz.
+
+**GitHub Pages:** Sunucu tarafı kod çalışmadığı için panel kaydı doğrudan GitHub API ile yapar:
 
 1. Panel, kullanıcının ince ayarlı (fine-grained) GitHub erişim anahtarıyla bağlanır. Paneldeki bağlantı anahtar oluşturma sayfasını ad, 90 gün süre, `Contents: Read and write` ve `Actions: Read-only` izinleriyle hazır açar; depo seçimi (`altindas-demo5`) elle yapılır.
 2. Proje veya ürün kaydedildiğinde fotoğraflar tarayıcıda en fazla 1600 px’e küçültülür, WebP’ye çevrilir (konum gibi kamera bilgileri silinir) ve `public/assets/projects|products|references/` altına yazılır. `src/content.json` ile birlikte `main` dalına tek commit olarak işlenir. Artık kullanılmayan fotoğraflar aynı commit’te silinir.
@@ -67,4 +80,4 @@ Toolkit, içerik, varlıklar, uygulama ve kalite görevlerinin ayrımında kulla
 
 ## Doğrulama sınırı
 
-Statik kontroller tüm üretilen sayfaları kapsar. Tarayıcı kontrolleri ana akışları ve seçili masaüstü/mobil görünümlerini kapsar; otomatik kontroller tek başına WCAG uygunluğu veya saha performansı garantisi değildir. Mağaza bir ürün kataloğu ve WhatsApp sipariş akışıdır; ödeme altyapısı bu deponun parçası değildir. Panelin GitHub API akışı uçtan uca, bellekte çalışan sahte bir GitHub API’siyle tarayıcıda test edilmiştir; gerçek anahtarla ilk kayıt canlıda ayrıca doğrulanmalıdır.
+Statik kontroller tüm üretilen sayfaları kapsar. Tarayıcı kontrolleri ana akışları ve seçili masaüstü/mobil görünümlerini kapsar; otomatik kontroller tek başına WCAG uygunluğu veya saha performansı garantisi değildir. Mağaza bir ürün kataloğu ve WhatsApp sipariş akışıdır; ödeme altyapısı bu deponun parçası değildir. PHP şablonlarının Pages çıktısı, önceki Node üreticisinin çıktısıyla bayt bayt karşılaştırılarak doğrulanmıştır. Hostinger sürümü yerelde PHP 8.3 + MariaDB 10.11 ile tarayıcıda uçtan uca test edilmiştir; Hostinger sunucusundaki ilk kurulum ayrıca doğrulanmalıdır.
