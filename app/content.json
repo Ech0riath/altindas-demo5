@@ -1,0 +1,570 @@
+{
+  "services": [
+    {
+      "slug": "kompanzasyon",
+      "title": "Kompanzasyon",
+      "short": "Reaktif tüketimi ölçen, tesisin yüküne göre çalışan pano çözümleri.",
+      "intro": "Reaktif ceza yalnızca faturada görünen bir sonuçtur. Önce tüketimi ve mevcut panoyu inceliyor, ardından tesisinizin yük karakterine uygun kompanzasyon çözümünü uyguluyoruz. Yeni pano kurulumu, mevcut sistemin revizyonu ve periyodik bakım aynı teknik takibin parçasıdır.",
+      "scope": [
+        "Elektrik faturası ve reaktif tüketim analizi",
+        "Otomatik kompanzasyon panosu kurulumu ve revizyonu",
+        "Harmonik filtreli kompanzasyon çözümleri",
+        "SVC röle, tristör sürücü ve şönt reaktör uygulamaları",
+        "Kondansatör, reaktör ve pano ekipmanlarının kontrolü"
+      ],
+      "process": [
+        "Faturayı, tesis yüklerini ve mevcut panoyu birlikte değerlendiriyoruz.",
+        "Ölçüm ve saha tespitlerine göre uygun çözümün kapsamını belirliyoruz.",
+        "Pano uygulamasını gerçekleştirip çalışma koşullarını kontrol ediyoruz.",
+        "Bakım ve takip ihtiyaçlarını işletmenizle paylaşıyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "Mevcut kompanzasyon panosu iyileştirilebilir mi?",
+          "a": "Evet. Pano, röle ve kademe ekipmanlarını inceleyerek bakım, ekipman değişimi veya revizyon ihtiyacını belirliyoruz. Çözüm mevcut sistemin durumuna göre şekillenir."
+        },
+        {
+          "q": "İlk görüşme için ne hazırlamalıyım?",
+          "a": "Güncel elektrik faturanız, kompanzasyon panosunun fotoğrafları ve tesisinizde çalışan başlıca yükler başlangıç değerlendirmesini kolaylaştırır."
+        }
+      ],
+      "icon": "activity"
+    },
+    {
+      "slug": "trafo-bakimi",
+      "title": "Trafo Bakımı",
+      "short": "Trafo, bağlantı ve yalıtım durumunu planlı bakım ve ölçümlerle takip ediyoruz.",
+      "intro": "Trafo bakımını yalnızca temizlik işlemi olarak görmüyoruz. Bağlantılardan yalıtıma, sargı ölçümlerinden yağ analizine kadar tesisin ihtiyacına göre belirlenen kontrolleri bir arada ele alıyoruz. Bakım kapsamını ve çalışma planını işletmenizle birlikte netleştiriyoruz.",
+      "scope": [
+        "Periyodik trafo bakım ve kontrolleri",
+        "Yalıtım direnci, sargı direnci ve dönüştürme oranı ölçümleri",
+        "Sekonder bağlantı kontrolü ve yenileme",
+        "Termal kamera ile bağlantı ve ekipman kontrolleri",
+        "Anlaşmalı laboratuvarda trafo yağı analizi"
+      ],
+      "process": [
+        "Trafo bilgilerini ve işletmenin bakım ihtiyacını değerlendiriyoruz.",
+        "Çalışma kapsamını ve bakım zamanlamasını belirliyoruz.",
+        "Planlanan bakım, ölçüm ve kontrolleri gerçekleştiriyoruz.",
+        "Bulguları ve gerekli iyileştirmeleri işletmeye aktarıyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "Trafo yağı analizini kendi laboratuvarınızda mı yapıyorsunuz?",
+          "a": "Yağ analizi anlaşmalı laboratuvarda yapılır. Bakım ihtiyacı ve analiz kapsamı keşif sırasında değerlendirilir."
+        },
+        {
+          "q": "Hangi ölçümler yapılabilir?",
+          "a": "Trafoya ve bakım kapsamına göre yalıtım direnci, sargı direnci, dönüştürme oranı ve termal kontroller yapılabilir. Uygulanacak testler tesisin durumuna göre belirlenir."
+        }
+      ],
+      "icon": "zap"
+    },
+    {
+      "slug": "isletme-sorumlulugu",
+      "title": "İşletme Sorumluluğu",
+      "short": "Yüksek gerilim tesisiniz için düzenli kontrol, raporlama ve teknik takip.",
+      "intro": "Yüksek gerilim tesisinin işletilmesi düzenli bir takip gerektirir. Trafo ve OG hücrelerinden pano ve topraklama kontrollerine kadar tesisin durumunu izliyor; tespitleri, bakım ihtiyaçlarını ve teknik süreçleri işletmenizle birlikte yönetiyoruz.",
+      "scope": [
+        "YG tesislerinde işletme sorumluluğu",
+        "Aylık periyodik kontrol ve trafo kontrolleri",
+        "OG hücre bakımının ve tesis ihtiyaçlarının takibi",
+        "Pano, tesisat, topraklama ve termal kontroller",
+        "Dağıtım şirketiyle teknik yazışmalar",
+        "Yıllık işletme raporu ve teknik danışmanlık"
+      ],
+      "process": [
+        "Tesisin mevcut durumunu ve teknik belgelerini inceliyoruz.",
+        "Kontrol ve bakım takvimini oluşturuyoruz.",
+        "Periyodik kontrollerde tespitleri kayıt altına alıyoruz.",
+        "İyileştirme ihtiyaçlarını ve işletme raporunu takip ediyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "Bu hizmet kimler için?",
+          "a": "Yüksek gerilim tesisi ve trafosu bulunan fabrikalar, sanayi işletmeleri ve tesis sahipleri için sunulur. Kapsam tesisin yapısına göre belirlenir."
+        },
+        {
+          "q": "Arıza desteği veriyor musunuz?",
+          "a": "Bakım veya işletme sözleşmesi bulunan müşterilerimiz için 7/24 arıza desteği sunuyoruz. Sözleşme kapsamı ve müdahale koşulları başlangıçta netleştirilir."
+        }
+      ],
+      "icon": "shield"
+    },
+    {
+      "slug": "endustriyel-otomasyon",
+      "title": "Endüstriyel Otomasyon",
+      "short": "PLC ve SCADA ile üretim süreçlerinize uygun kontrol ve izleme altyapısı.",
+      "intro": "Üretim hattının ihtiyaçlarını elektrik altyapısıyla birlikte değerlendiriyoruz. PLC programlama, SCADA ve haberleşme uygulamalarını işletmenin çalışma düzenine göre ele alıyor; mevcut sistem revizyonlarında da sahadaki ihtiyaca odaklanıyoruz.",
+      "scope": [
+        "PLC tabanlı kontrol sistemleri",
+        "Siemens S7-1200 ve S7-1500 uygulamaları",
+        "TIA Portal ve WinCC ile kontrol ve izleme",
+        "SCADA uygulamaları",
+        "Profinet ve Modbus TCP haberleşme altyapısı"
+      ],
+      "process": [
+        "Üretim sürecini ve kontrol ihtiyaçlarını dinliyoruz.",
+        "Kontrol, izleme ve haberleşme kapsamını belirliyoruz.",
+        "Yazılım ve saha uygulamasını birlikte yürütüyoruz.",
+        "Çalışma senaryolarını işletmeyle değerlendiriyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "Mevcut sisteme müdahale edebilir misiniz?",
+          "a": "Mevcut PLC, pano ve haberleşme altyapısını inceleyerek revizyon kapsamını belirliyoruz. İlk değerlendirmede cihaz bilgileri ve varsa proje dosyaları faydalıdır."
+        },
+        {
+          "q": "Hangi platformlarla çalışıyorsunuz?",
+          "a": "Siemens S7-1200/1500, TIA Portal ve WinCC ağırlıklı çalışıyoruz. Kullanılacak platform, mevcut altyapı ve projenin ihtiyaçlarına göre değerlendirilir."
+        }
+      ],
+      "icon": "cpu"
+    },
+    {
+      "slug": "elektrik-taahhut-proje",
+      "title": "Elektrik Taahhüt Proje",
+      "short": "Konut ve sanayide projeden enerji alımına kadar bütüncül elektrik uygulaması.",
+      "intro": "Bir yapının elektrik altyapısını trafo merkezinden son kullanım noktasına kadar bir bütün olarak ele alıyoruz. AG/OG tesisat, dağıtım panoları, proje çizimi ve saha uygulamasını aynı kapsam içinde planlayarak konut ve sanayi projelerinde çalışıyoruz.",
+      "scope": [
+        "AG ve OG elektrik tesisatı",
+        "Trafo köşkü ve hücre uygulamaları",
+        "Ana dağıtım ve tali pano kurulumu",
+        "Konut ve sanayi elektrik altyapısı",
+        "AutoCAD ile elektrik proje çizimi",
+        "GDZ proje onay ve enerji alım süreçlerinin takibi"
+      ],
+      "process": [
+        "Yapının kullanımını, saha koşullarını ve ihtiyaçlarını belirliyoruz.",
+        "Elektrik projesi ve uygulama kapsamını hazırlıyoruz.",
+        "Altyapı, pano ve tesisat işlerini yürütüyoruz.",
+        "Kontrolleri ve enerji alım sürecini proje kapsamına göre takip ediyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "Konut projelerinde de çalışıyor musunuz?",
+          "a": "Evet. Konut siteleri, villalar ve sanayi tesislerinde elektrik proje ve uygulama hizmeti sunuyoruz."
+        },
+        {
+          "q": "Sadece uygulama mı, proje hizmeti de veriyor musunuz?",
+          "a": "Elektrik proje çizimi, AG/OG uygulama ve proje onay süreçlerinin takibi hizmet kapsamımızdadır. İhtiyacınıza göre kapsamı birlikte belirliyoruz."
+        }
+      ],
+      "icon": "building"
+    },
+    {
+      "slug": "kamera-sistemleri",
+      "title": "Kamera Sistemleri",
+      "short": "IP kamera, kayıt ve PoE altyapısını mekânınızın ihtiyaçlarına göre kuruyoruz.",
+      "intro": "Kamera sistemini yalnızca cihaz sayısıyla değerlendirmiyoruz. İzlenmesi gereken alanları, kablolamayı ve kayıt altyapısını birlikte planlıyoruz. Sanayi tesislerinden konutlara kadar IP kamera, alarm ve diafon uygulamaları sunuyoruz.",
+      "scope": [
+        "Hikvision IP kamera sistemleri",
+        "NVR kayıt altyapısı",
+        "PoE ve kamera kablolama altyapısı",
+        "Alarm sistemleri",
+        "Diafon ve görüntülü diafon uygulamaları"
+      ],
+      "process": [
+        "İzlenecek alanları ve güvenlik ihtiyaçlarını belirliyoruz.",
+        "Kamera, kayıt ve kablolama kapsamını planlıyoruz.",
+        "Kurulum ve sistem ayarlarını gerçekleştiriyoruz.",
+        "Görüntüleme ve kayıt işlevlerini kontrol ediyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "Mevcut kamera altyapısını kullanabilir misiniz?",
+          "a": "Kablolama, kamera ve kayıt cihazlarını keşifte inceliyoruz. Kullanılabilecek bileşenleri ve yenileme ihtiyacını bu değerlendirmeden sonra belirliyoruz."
+        },
+        {
+          "q": "Kamera dışında hangi güvenlik sistemlerini kuruyorsunuz?",
+          "a": "Alarm ve diafon sistemleri de hizmet kapsamımızdadır. İhtiyaçları elektrik ve haberleşme altyapısıyla birlikte değerlendiriyoruz."
+        }
+      ],
+      "icon": "camera"
+    },
+    {
+      "slug": "gunes-enerji-sistemleri",
+      "title": "Güneş Enerji Sistemleri",
+      "short": "Güneş enerjisi yatırımlarında kurulum, bakım ve teknik danışmanlık.",
+      "intro": "Güneş enerjisi projenize tesisinizin ihtiyacını anlayarak başlıyoruz. Kurulum, bakım ve danışmanlık hizmetlerini kullanım koşullarına göre değerlendiriyor; teknik kapsamı keşif sonrasında netleştiriyoruz.",
+      "scope": [
+        "Güneş enerji sistemi kurulumu",
+        "Mevcut GES için bakım hizmeti",
+        "Proje öncesi teknik danışmanlık",
+        "Tesis ve kullanım ihtiyacına göre kapsam değerlendirmesi"
+      ],
+      "process": [
+        "Tesisinizi, kullanım ihtiyacınızı ve mevcut durumu değerlendiriyoruz.",
+        "Kurulum veya bakım için teknik kapsamı belirliyoruz.",
+        "Uygulama ve çalışma planını sizinle netleştiriyoruz.",
+        "Belirlenen kapsam doğrultusunda hizmeti yürütüyoruz."
+      ],
+      "faqs": [
+        {
+          "q": "GES için hangi hizmetleri veriyorsunuz?",
+          "a": "Kurulum, bakım ve teknik danışmanlık sunuyoruz. Projenizin kapsamı ilk görüşme ve saha değerlendirmesi sonrasında belirlenir."
+        },
+        {
+          "q": "İlk görüşmede kesin üretim veya geri dönüş hesabı alabilir miyim?",
+          "a": "Bu değerler tesis, tüketim ve proje koşullarına bağlıdır. Önce ihtiyacınızı ve saha koşullarını değerlendirip teknik çalışmanın kapsamını belirliyoruz."
+        }
+      ],
+      "icon": "sun"
+    }
+  ],
+  "projects": [
+    {
+      "slug": "dort-mevsim",
+      "title": "Dört Mevsim Konutları",
+      "category": "Konut",
+      "status": "Tamamlandı",
+      "year": "2024",
+      "location": "Yeni Mahalle, Aliağa / İzmir",
+      "summary": "72 daire ve 5 blok için trafo merkezinden daire içi tesisata kadar elektrik altyapısı.",
+      "intro": "Dört Mevsim Konut Yapı Kooperatifi projesinde 72 daire, 5 blok ve sosyal tesisin elektrik altyapısını üstlendik. Temelden başlayarak trafo merkezi, dağıtım panoları, daire tesisatı ve ortak alan sistemlerini aynı proje içinde tamamladık.",
+      "scope": [
+        "630 kVA betonarme trafo köşkü ve OG hücre uygulaması",
+        "GDZ'den enerji alımı ve 1600 A ana pano",
+        "Blok, sayaç ve daire içi elektrik tesisatı",
+        "Zayıf akım, görüntülü diafon ve merkezi TV",
+        "LED çevre aydınlatması ve site giriş otomasyonu"
+      ],
+      "results": [
+        "Trafo merkezinden dairelere uzanan elektrik altyapısı tamamlandı.",
+        "Ortak alan aydınlatması ve zayıf akım sistemleri proje kapsamına dahil edildi."
+      ],
+      "facts": [
+        {
+          "label": "Yapı",
+          "value": "72 daire · 5 blok"
+        },
+        {
+          "label": "Proje alanı",
+          "value": "8.500 m²"
+        },
+        {
+          "label": "Trafo",
+          "value": "630 kVA"
+        },
+        {
+          "label": "Ana pano",
+          "value": "1600 A"
+        }
+      ],
+      "image": "assets/projects/dort-mevsim.webp",
+      "imageAlt": "Dört Mevsim Konut Kooperatifi şantiyesindeki konut bloklarının havadan görünümü",
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "elektrik-taahhut-proje"
+      ]
+    },
+    {
+      "slug": "nigsa-metal",
+      "title": "Niğsa Metal",
+      "category": "Endüstriyel",
+      "status": "Tamamlandı",
+      "year": "2023",
+      "location": "Samurlu, Aliağa / İzmir",
+      "summary": "Yeni fabrikanın elektrik altyapısı, kompanzasyonu, otomasyonu ve kamera sistemi birlikte kuruldu.",
+      "intro": "Niğsa Metal Geri Dönüşüm'ün 12.000 m² yeni fabrika projesinde elektrik altyapısını sıfırdan kurduk. Enerji dağıtımı, kompanzasyon, üretim kontrolü ve güvenlik sistemleri tesisin ihtiyacı doğrultusunda birlikte ele alındı.",
+      "scope": [
+        "2500 A ana dağıtım panosu, MCC ve tali panolar",
+        "300 kVAr harmonik filtreli kompanzasyon",
+        "Siemens S7-1200 PLC ve SCADA uygulaması",
+        "24 IP kamera ve NVR kayıt altyapısı",
+        "LED endüstriyel aydınlatma ve tesis kablolaması"
+      ],
+      "results": [
+        "Yeni tesisin elektrik altyapısı kuruldu.",
+        "Kompanzasyon panosu devreye alındı.",
+        "Güvenlik kameralarının montajı ve ayarları gerçekleştirildi."
+      ],
+      "facts": [
+        {
+          "label": "Tesis alanı",
+          "value": "12.000 m²"
+        },
+        {
+          "label": "Ana pano",
+          "value": "2500 A"
+        },
+        {
+          "label": "Kompanzasyon",
+          "value": "300 kVAr"
+        },
+        {
+          "label": "Kamera",
+          "value": "24 IP kamera"
+        }
+      ],
+      "image": "assets/projects/nigsa-metal.webp",
+      "imageAlt": "Niğsa Metal tesisinin üretim alanı ve endüstriyel kapısı",
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "elektrik-taahhut-proje",
+        "kompanzasyon",
+        "endustriyel-otomasyon",
+        "kamera-sistemleri"
+      ]
+    },
+    {
+      "slug": "ozdenizcilik",
+      "title": "Özdenizcilik",
+      "category": "Endüstriyel",
+      "status": "İşletme sorumluluğu sürüyor",
+      "year": "2024–2026",
+      "location": "Aliağa / İzmir",
+      "summary": "Reaktif ceza çözümünden trafo bakımına ve YG işletme sorumluluğuna uzanan tesis çalışması.",
+      "intro": "Özdenizcilik Alüminyum Geri Dönüşüm tesisinde 2024 yılında kompanzasyon çalışmasını tamamladık. Trafo bakımı, pano revizyonu ve ölçüm işleriyle devam eden kapsam, 2026 yılında işletme sorumluluğu ile genişledi. Köşk, trafo ve hücre değişimi de tamamlandı.",
+      "scope": [
+        "1600 kVA trafo bakımı ve yağ analizi",
+        "200 kVAr otomatik kompanzasyon",
+        "Ana ve tali pano revizyonu",
+        "Topraklama ölçümü ve enerji analizörü",
+        "16 IP kamera kurulumu",
+        "34,5/0,4 kV tesisin işletme sorumluluğu",
+        "2026 yılında köşk, trafo ve hücre değişimi"
+      ],
+      "results": [
+        "Kompanzasyon uygulamasıyla reaktif ceza sıfırlandı.",
+        "Köşk, trafo ve hücre değişimi tamamlandı.",
+        "Tesisin işletme sorumluluğu üstlenildi."
+      ],
+      "facts": [
+        {
+          "label": "Trafo",
+          "value": "1600 kVA"
+        },
+        {
+          "label": "Gerilim",
+          "value": "34,5/0,4 kV"
+        },
+        {
+          "label": "Kompanzasyon",
+          "value": "200 kVAr"
+        },
+        {
+          "label": "Kamera",
+          "value": "16 IP kamera"
+        }
+      ],
+      "image": "assets/projects/ozdenizcilik.webp",
+      "imageAlt": "Özdenizcilik projesi için sevkiyata hazırlanan prefabrik elektrik köşkleri",
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "kompanzasyon",
+        "trafo-bakimi",
+        "isletme-sorumlulugu",
+        "kamera-sistemleri",
+        "elektrik-taahhut-proje"
+      ]
+    },
+    {
+      "slug": "villa-sakran",
+      "title": "Demirkent Villaları",
+      "category": "Konut",
+      "status": "Devam ediyor",
+      "year": "2024–",
+      "location": "Şakran, Aliağa / İzmir",
+      "summary": "Üç villa ve müştemilatta temel topraklaması, borulama ve kablolama tamamlandı.",
+      "intro": "Demirkent Sitesi Villa Projesi'nde üç villa ve müştemilatın elektrik altyapısını yürütüyoruz. Aralık 2024'te başlayan çalışmada temel topraklaması, beton ve duvar borulaması ile kablolama tamamlandı. Bina montajı proje kapsamında kalan aşamadır.",
+      "scope": [
+        "Temel topraklaması ve 125 A şantiye panosu",
+        "Beton ve duvar borulaması",
+        "Kablolama ve daire içi elektrik tesisatı",
+        "Akıllı ev otomasyonu",
+        "Kamera ve alarm sistemi altyapısı"
+      ],
+      "results": [
+        "Temel topraklaması, borulama ve kablolama tamamlandı.",
+        "Temel topraklamasında 4 Ω altında değer ölçüldü.",
+        "Bina montajı, projenin kalan aşamasıdır."
+      ],
+      "facts": [
+        {
+          "label": "Kapsam",
+          "value": "3 villa + müştemilat"
+        },
+        {
+          "label": "Proje alanı",
+          "value": "3.200 m²"
+        },
+        {
+          "label": "Şantiye panosu",
+          "value": "125 A"
+        },
+        {
+          "label": "Başlangıç",
+          "value": "Aralık 2024"
+        }
+      ],
+      "image": "",
+      "imageAlt": "",
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "elektrik-taahhut-proje",
+        "kamera-sistemleri",
+        "endustriyel-otomasyon"
+      ]
+    },
+    {
+      "slug": "saka-beton",
+      "title": "Saka Beton",
+      "category": "Konut",
+      "status": "Referans proje",
+      "year": "",
+      "location": "",
+      "summary": "48 dairelik konut projesinin elektrik tesisatı uygulaması.",
+      "intro": "Saka Beton'un 48 dairelik konut projesinde elektrik tesisatı işlerini üstlendik. Çalışma, bina elektrik altyapısı ve daire içi tesisat uygulamalarını kapsadı.",
+      "scope": [
+        "48 dairelik konut projesinin elektrik tesisatı",
+        "Bina elektrik altyapısı",
+        "Daire içi elektrik işleri"
+      ],
+      "results": [
+        "Konut projesinin elektrik tesisatı uygulaması gerçekleştirildi."
+      ],
+      "facts": [
+        {
+          "label": "Yapı",
+          "value": "48 daire"
+        },
+        {
+          "label": "Hizmet",
+          "value": "Elektrik taahhüt"
+        }
+      ],
+      "image": "",
+      "imageAlt": "",
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "elektrik-taahhut-proje"
+      ]
+    },
+    {
+      "slug": "ramada",
+      "title": "Ramada by Wyndham",
+      "category": "İşletme",
+      "status": "İşletme sorumluluğu",
+      "year": "",
+      "location": "",
+      "summary": "İşletme sorumluluğu kapsamında pano, tesisat ve kompanzasyon kontrolleri.",
+      "intro": "Ramada by Wyndham için işletme sorumluluğu hizmeti sunuyoruz. Panoların, elektrik tesisatlarının ve kompanzasyon sisteminin kontrollerini yaparak tespit edilen ihtiyaçlar doğrultusunda iyileştirme çalışmaları yürütüyoruz.",
+      "scope": [
+        "İşletme sorumluluğu",
+        "Elektrik panolarının kontrolü",
+        "Tesisat kontrolleri",
+        "Kompanzasyon sisteminin kontrolü ve iyileştirilmesi"
+      ],
+      "results": [
+        "Pano, tesisat ve kompanzasyon sistemleri teknik takip kapsamında değerlendiriliyor."
+      ],
+      "facts": [
+        {
+          "label": "Hizmet",
+          "value": "İşletme sorumluluğu"
+        },
+        {
+          "label": "Kapsam",
+          "value": "Pano · tesisat · kompanzasyon"
+        }
+      ],
+      "image": "",
+      "imageAlt": "",
+      "gallery": [],
+      "drawing": "shield",
+      "services": [
+        "isletme-sorumlulugu",
+        "kompanzasyon"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "name": "Niğsa Metal",
+      "logo": "assets/references/nigsa-metal.webp",
+      "project": "nigsa-metal"
+    },
+    {
+      "name": "Özdenizcilik",
+      "logo": "assets/references/ozdenizcilik.webp",
+      "project": "ozdenizcilik"
+    },
+    {
+      "name": "Saka Beton",
+      "logo": "assets/references/saka-beton.webp",
+      "project": "saka-beton"
+    },
+    {
+      "name": "Ramada by Wyndham",
+      "logo": "assets/references/ramada.webp",
+      "project": "ramada"
+    },
+    {
+      "name": "Dört Mevsim Konut Yapı Kooperatifi",
+      "logo": "",
+      "project": "dort-mevsim",
+      "wordmark": "DÖRT MEVSİM",
+      "wordmarkSmall": "KONUT YAPI KOOPERATİFİ"
+    }
+  ],
+  "products": [
+    {
+      "slug": "2-5mm-nya",
+      "title": "2,5mm NYA",
+      "category": "Kablo",
+      "brand": "Öznur Kablo",
+      "sku": "nya25",
+      "price": 2500,
+      "vat": "dahil",
+      "unit": "Adet",
+      "stock": "Stokta",
+      "summary": "2,5mm2 Tek damar bakır iletken.",
+      "description": "",
+      "specs": [],
+      "image": "",
+      "imageAlt": "",
+      "gallery": []
+    }
+  ],
+  "about": {
+    "intro": "Aliağa'dan sahaya uzanan mühendislik.",
+    "paragraphs": [
+      "Altındaş Mühendislik & Elektrik, elektrik mühendisi Caner Altındaş tarafından Aliağa'da kuruldu. 10 yılı aşkın deneyimle sanayi tesisleri, ticari işletmeler ve konut projeleri için elektrik mühendisliği hizmetleri sunuyoruz.",
+      "Trafo ve yüksek gerilim tesislerinden kompanzasyona; elektrik proje ve uygulamasından otomasyon, kamera ve güneş enerjisine kadar farklı ihtiyaçları aynı mühendislik yaklaşımıyla ele alıyoruz. Önce sahayı ve ihtiyacı anlıyor, sonra uygulanabilir kapsamı belirliyoruz.",
+      "Caner Altındaş, Bolu Abant İzzet Baysal Üniversitesi elektrik mühendisliği mezunu ve TMMOB Elektrik Mühendisleri Odası İzmir Şubesi üyesidir. İşimizi ölçüm, planlı uygulama ve düzenli teknik takip üzerine kuruyoruz.",
+      "Merkezimiz Aliağa. İzmir, Manisa, Bergama, Balıkesir ve Aydın'da ücretsiz keşif sunuyoruz. Büyük endüstriyel projelerde çalışma kapsamını Türkiye genelinde değerlendiriyoruz."
+    ]
+  },
+  "faqs": [
+    {
+      "q": "Keşif ücretli mi?",
+      "a": "İzmir, Manisa, Bergama, Balıkesir ve Aydın'da keşif ücretsizdir. Tesisinizin konumunu ve ihtiyacını paylaşarak keşif planlaması yapabilirsiniz."
+    },
+    {
+      "q": "Ne kadar sürede dönüş yapıyorsunuz?",
+      "a": "Keşif taleplerine 24 saat içinde dönüş yapıyoruz. Keşif sonrasında teknik çözüm ve fiyat teklifini 2–3 iş günü içinde hazırlıyoruz."
+    },
+    {
+      "q": "Sadece sanayi tesisleriyle mi çalışıyorsunuz?",
+      "a": "Sanayi tesislerinin yanında konut siteleri, villalar ve ticari işletmeler için de elektrik proje, uygulama ve teknik takip hizmeti sunuyoruz."
+    },
+    {
+      "q": "Acil arıza desteği veriyor musunuz?",
+      "a": "Bakım veya işletme sözleşmeli müşterilerimiz için 7/24 arıza desteği sunuyoruz. Sözleşme kapsamını ilk görüşmede birlikte netleştiriyoruz."
+    },
+    {
+      "q": "Çalışma saatleriniz nedir?",
+      "a": "Pazartesi–Cumartesi 08:30–18:00 saatlerinde çalışıyoruz. Sözleşmeli müşterilerimizin acil arıza desteği bu saatlerden ayrı değerlendirilir."
+    },
+    {
+      "q": "Teklif için hangi bilgiler gerekli?",
+      "a": "Tesis konumu, ihtiyaç duyduğunuz hizmet ve mevcut durumun kısa özetiyle başlayabiliriz. Proje çizimi, pano fotoğrafları veya elektrik faturası gibi mevcut belgeler teknik değerlendirmeyi kolaylaştırır."
+    }
+  ]
+}
