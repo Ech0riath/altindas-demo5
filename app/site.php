@@ -238,6 +238,28 @@ final class Site
         return '<section class="media-gallery" aria-label="' . esc($title) . '"><h2>' . esc($title) . '</h2><div class="gallery-grid">' . self::map($items, fn ($g) => $this->galleryItem($g)) . '</div></section>';
     }
 
+    /** Hostinger'da iyzico açıksa kartla satın alınabilecek ürün: fiyatı KDV dahil ve stokta. */
+    public static function payable(array $p): bool
+    {
+        return self::hasPrice($p) && $p['price'] > 0 && (($p['vat'] ?? '') ?: 'dahil') === 'dahil' && ($p['stock'] ?? '') !== 'Tükendi';
+    }
+
+    private function cardPayments(): bool
+    {
+        return !empty($this->options['payments']);
+    }
+
+    /** Yayındaki ürün (taslaklar hariç). */
+    public function product(string $slug): ?array
+    {
+        foreach ($this->products as $p) {
+            if ($p['slug'] === $slug) {
+                return $p;
+            }
+        }
+        return null;
+    }
+
     private static function hasPrice(array $p): bool
     {
         return (is_int($p['price'] ?? null) || is_float($p['price'] ?? null)) && $p['price'] >= 0;
@@ -470,7 +492,9 @@ final class Site
     private function storePage(): string
     {
         $categories = array_values(array_unique(array_column($this->products, 'category')));
-        $notice = '<p class="store-notice">' . $this->icon('check') . '<span>Bu sitede ödeme alınmaz. Siparişinizi WhatsApp’tan iletirsiniz; stok, teslimat ve ödeme bilgisini sizinle doğrudan teyit ederiz. Fiyatlar ürünün yanında belirtilen KDV durumuyla listelenir.</span></p>';
+        $notice = $this->cardPayments()
+            ? '<p class="store-notice">' . $this->icon('check') . '<span>KDV dahil fiyatlı, stoktaki ürünleri iyzico ödeme sayfasında kartla satın alabilir ya da siparişinizi WhatsApp’tan iletebilirsiniz. Kart bilgileriniz bu siteye ulaşmaz. Teslimatı siparişten sonra sizinle planlarız. Kartla ödeme şu an test modundadır; gerçek ödeme alınmaz.</span></p>'
+            : '<p class="store-notice">' . $this->icon('check') . '<span>Bu sitede ödeme alınmaz. Siparişinizi WhatsApp’tan iletirsiniz; stok, teslimat ve ödeme bilgisini sizinle doğrudan teyit ederiz. Fiyatlar ürünün yanında belirtilen KDV durumuyla listelenir.</span></p>';
         return $this->page(
             'magaza/',
             'Mağaza',
@@ -526,9 +550,75 @@ final class Site
             'magaza/' . $p['slug'] . '/',
             $p['title'],
             $p['summary'],
-            $this->intro(['Mağaza', 'magaza/'], $p['title'], $p['summary']) . '<div class="wrap"><div class="project-detail-meta"><span>' . esc($p['category']) . '</span><span class="status ' . self::stockClass($p) . '">' . esc(($p['stock'] ?? '') ?: 'Sipariş üzerine') . '</span>' . (!empty($p['brand']) ? '<span>' . esc($p['brand']) . '</span>' : '') . (!empty($p['sku']) ? '<span>Stok kodu: ' . esc($p['sku']) . '</span>' : '') . '</div><div class="product-layout"><div class="product-media">' . $media . '</div><aside class="buy-box" aria-labelledby="buy-title"><h2 id="buy-title" class="sr-only">Fiyat ve sipariş</h2><div class="product-price large">' . $this->priceHTML($p) . '</div><form class="order-form" data-order data-template="' . esc($this->orderMessage($p, '{qty}')) . '"><div class="field order-qty" hidden><label for="order-qty">Miktar <span>(' . esc($unit) . ')</span></label><input id="order-qty" name="qty" type="number" inputmode="numeric" min="1" max="9999" step="1" value="1"></div><a class="btn btn-primary" href="' . self::WA . '?text=' . uri_component($this->orderMessage($p, '1')) . '" target="_blank" rel="noopener noreferrer" data-order-link>' . (($p['stock'] ?? '') === 'Tükendi' ? 'Stok durumunu sorun' : 'WhatsApp ile sipariş verin') . ' ' . $this->icon('arrowUp') . '</a></form><p class="buy-note">Mesaj WhatsApp’ta açılır; gönderimi siz tamamlarsınız. Stok, teslimat ve ödeme sipariş sırasında teyit edilir.</p><a href="tel:+905384475676" class="aside-phone">' . self::PHONE . '</a><small>Pazartesi–Cumartesi / 08:30–18:00</small></aside></div><div class="project-story"><article><p class="eyebrow">Ürün bilgisi</p><h2>Ürün açıklaması</h2>' . $paragraphs . '</article><aside class="project-facts"><h2>Teknik özellikler</h2>' . ($specs ? '<dl>' . self::map($specs, fn ($f) => '<div><dt>' . esc($f['label']) . '</dt><dd>' . esc($f['value']) . '</dd></div>') . '</dl>' : '<p class="facts-empty">Teknik ayrıntılar için WhatsApp veya telefonla ulaşabilirsiniz.</p>') . '</aside></div>' . ($related ? '<section class="section small-section">' . $this->sectionHead('Aynı kategoriden', 'Diğer ürünler.') . '<div class="product-grid">' . self::map($related, fn ($o) => $this->productCard($o)) . '</div></section>' : '') . '<div class="project-navigation"><a class="inline-link" href="' . $this->url('magaza/') . '">← Tüm ürünler</a>' . $this->btn('Teknik soru sorun', $this->url('iletisim/'), 'secondary') . '</div></div>',
+            $this->intro(['Mağaza', 'magaza/'], $p['title'], $p['summary']) . '<div class="wrap"><div class="project-detail-meta"><span>' . esc($p['category']) . '</span><span class="status ' . self::stockClass($p) . '">' . esc(($p['stock'] ?? '') ?: 'Sipariş üzerine') . '</span>' . (!empty($p['brand']) ? '<span>' . esc($p['brand']) . '</span>' : '') . (!empty($p['sku']) ? '<span>Stok kodu: ' . esc($p['sku']) . '</span>' : '') . '</div><div class="product-layout"><div class="product-media">' . $media . '</div><aside class="buy-box" aria-labelledby="buy-title"><h2 id="buy-title" class="sr-only">Fiyat ve sipariş</h2><div class="product-price large">' . $this->priceHTML($p) . '</div>' . $this->buyForm($p, $unit) . '<a href="tel:+905384475676" class="aside-phone">' . self::PHONE . '</a><small>Pazartesi–Cumartesi / 08:30–18:00</small></aside></div><div class="project-story"><article><p class="eyebrow">Ürün bilgisi</p><h2>Ürün açıklaması</h2>' . $paragraphs . '</article><aside class="project-facts"><h2>Teknik özellikler</h2>' . ($specs ? '<dl>' . self::map($specs, fn ($f) => '<div><dt>' . esc($f['label']) . '</dt><dd>' . esc($f['value']) . '</dd></div>') . '</dl>' : '<p class="facts-empty">Teknik ayrıntılar için WhatsApp veya telefonla ulaşabilirsiniz.</p>') . '</aside></div>' . ($related ? '<section class="section small-section">' . $this->sectionHead('Aynı kategoriden', 'Diğer ürünler.') . '<div class="product-grid">' . self::map($related, fn ($o) => $this->productCard($o)) . '</div></section>' : '') . '<div class="project-navigation"><a class="inline-link" href="' . $this->url('magaza/') . '">← Tüm ürünler</a>' . $this->btn('Teknik soru sorun', $this->url('iletisim/'), 'secondary') . '</div></div>',
             'magaza/',
             $schema,
+        );
+    }
+
+    private function buyForm(array $p, string $unit): string
+    {
+        $card = $this->cardPayments() && self::payable($p);
+        $qty = '<div class="field order-qty" hidden><label for="order-qty">Miktar <span>(' . esc($unit) . ')</span></label><input id="order-qty" name="qty" type="number" inputmode="numeric" min="1" max="' . ($card ? 999 : 9999) . '" step="1" value="1"></div>';
+        $whatsapp = '<a class="btn btn-' . ($card ? 'secondary' : 'primary') . '" href="' . self::WA . '?text=' . uri_component($this->orderMessage($p, '1')) . '" target="_blank" rel="noopener noreferrer" data-order-link>' . (($p['stock'] ?? '') === 'Tükendi' ? 'Stok durumunu sorun' : 'WhatsApp ile sipariş verin') . ' ' . $this->icon('arrowUp') . '</a>';
+        if (!$card) {
+            return '<form class="order-form" data-order data-template="' . esc($this->orderMessage($p, '{qty}')) . '">' . $qty . $whatsapp . '</form><p class="buy-note">Mesaj WhatsApp’ta açılır; gönderimi siz tamamlarsınız. Stok, teslimat ve ödeme sipariş sırasında teyit edilir.</p>';
+        }
+        return '<form class="order-form" data-order data-template="' . esc($this->orderMessage($p, '{qty}')) . '" method="get" action="' . $this->url('odeme/') . '"><input type="hidden" name="urun" value="' . esc($p['slug']) . '">' . $qty . '<button class="btn btn-primary" type="submit">Kartla satın alın ' . $this->icon('arrow') . '</button>' . $whatsapp . '</form><p class="buy-note">Kart bilgileriniz iyzico’nun ödeme sayfasında girilir; bu siteye ulaşmaz. Teslimat siparişten sonra sizinle telefonda planlanır.</p><p class="test-mode">Test modu: kartla ödeme denemedir, gerçek ödeme alınmaz.</p>';
+    }
+
+    // ------------------------------------------------------------ ödeme (yalnız Hostinger)
+    /** odeme/ — alıcı ve teslimat bilgisi; gönderilince iyzico ödeme sayfasına geçilir. */
+    public function checkoutPage(array $p, int $qty, array $input, array $errors): string
+    {
+        $unit = ($p['unit'] ?? '') ?: 'adet';
+        $total = round((float) $p['price'] * $qty, 2);
+        $v = fn ($k) => esc($input[$k] ?? '');
+        $field = fn ($id, $label, $attrs, $help = '') => '<div class="field"><label for="' . $id . '">' . $label . '</label><input id="' . $id . '" name="' . $id . '" value="' . $v($id) . '" required ' . $attrs . ($help !== '' ? ' aria-describedby="' . $id . '-help"' : '') . '>' . ($help !== '' ? '<small id="' . $id . '-help">' . $help . '</small>' : '') . '</div>';
+        $errorBox = $errors ? '<div class="form-errors" role="alert"><h2>Sipariş tamamlanamadı</h2><ul>' . self::map($errors, fn ($e) => '<li>' . esc($e) . '</li>') . '</ul></div>' : '';
+        $form = '<form class="discovery-form" method="post" action="' . $this->url('odeme/') . '"><div class="form-heading"><h2>Alıcı ve teslimat bilgileri</h2><p>Bu bilgiler iyzico’ya ve siparişi hazırlamamız için bize iletilir.</p></div>' . $errorBox . '<input type="hidden" name="urun" value="' . esc($p['slug']) . '"><input type="hidden" name="qty" value="' . $qty . '">'
+            . '<div class="form-row">' . $field('ad', 'Adınız', 'autocomplete="given-name" maxlength="60"') . $field('soyad', 'Soyadınız', 'autocomplete="family-name" maxlength="60"') . '</div>'
+            . '<div class="form-row">' . $field('eposta', 'E-posta', 'type="email" autocomplete="email" maxlength="160"') . $field('telefon', 'Cep telefonu', 'type="tel" autocomplete="tel" inputmode="tel" maxlength="20"', 'Örnek: 0538 447 56 76') . '</div>'
+            . $field('tckn', 'T.C. kimlik numarası', 'inputmode="numeric" autocomplete="off" pattern="[0-9]{11}" maxlength="11"', 'Fatura ve ödeme kuruluşu için gereklidir; yalnız iyzico’ya iletilir, sitede saklanmaz.')
+            . '<div class="form-row">' . $field('il', 'İl', 'autocomplete="address-level1" maxlength="60"') . $field('ilce', 'İlçe', 'autocomplete="address-level2" maxlength="60"') . '</div>'
+            . '<div class="field"><label for="adres">Açık adres</label><textarea id="adres" name="adres" rows="3" required minlength="10" maxlength="300" autocomplete="street-address">' . $v('adres') . '</textarea></div>'
+            . '<div class="field"><label for="not">Sipariş notu <span>(isteğe bağlı)</span></label><textarea id="not" name="not" rows="2" maxlength="500">' . $v('not') . '</textarea></div>'
+            . '<p class="form-notice">Kart bilgilerinizi bir sonraki adımda iyzico’nun ödeme sayfasında girersiniz; bu siteye ulaşmaz. Ad, iletişim ve adres bilgileriniz siparişi teslim etmek için kaydedilir. <a href="' . $this->url('gizlilik/') . '">Gizlilik bilgileri</a></p>'
+            . '<button class="btn btn-primary" type="submit">iyzico ile ödemeye geçin ' . $this->icon('arrow') . '</button></form>';
+        $aside = '<aside class="form-aside checkout-summary"><span class="eyebrow">Sipariş özeti</span><h2>' . esc($p['title']) . '</h2><dl><div><dt>Miktar</dt><dd>' . $qty . ' ' . esc($unit) . '</dd></div><div><dt>Birim fiyat</dt><dd>' . price_text($p['price']) . '</dd></div><div class="checkout-total"><dt>Toplam <small>(KDV dahil)</small></dt><dd>' . price_text($total) . '</dd></div></dl><p>Teslimat şekli siparişten sonra sizinle telefonda planlanır.</p><a class="inline-link" href="' . $this->url('magaza/' . $p['slug'] . '/') . '">← Miktarı değiştirin</a><p class="test-mode">Test modu: gerçek ödeme alınmaz; yalnız iyzico test kartlarıyla denenebilir.</p></aside>';
+        return $this->page(
+            'odeme/',
+            'Siparişi tamamlayın',
+            'Mağaza siparişiniz için alıcı ve teslimat bilgileri; ödeme iyzico ödeme sayfasında yapılır.',
+            $this->intro(['Mağaza', 'magaza/'], 'Siparişi tamamlayın', 'Bilgilerinizi yazın; ödemeyi iyzico’nun güvenli ödeme sayfasında kartınızla yaparsınız.') . '<div class="wrap form-layout checkout-layout">' . $form . $aside . '</div>',
+            'magaza/',
+            null,
+            ['robots' => 'noindex,nofollow'],
+        );
+    }
+
+    /** odeme/sonuc/ — iyzico dönüşünden sonra siparişin doğrulanmış durumu. */
+    public function orderResultPage(array $o): string
+    {
+        [$title, $desc] = match ($o['status']) {
+            'odendi' => ['Ödemeniz alındı', 'Siparişiniz bize ulaştı. Teslimatı planlamak için sizi telefonla arayacağız.'],
+            'kontrol' => ['Ödemeniz kontrol ediliyor', 'Ödeme bilgisi bize ulaştı ancak elle kontrol gerekiyor. Sizinle kısa sürede iletişime geçeceğiz.'],
+            'basarisiz' => ['Ödeme gerçekleşmedi', 'Kartınızdan çekim yapılmadı. Tekrar deneyebilir veya siparişinizi WhatsApp’tan iletebilirsiniz.'],
+            default => ['Ödeme tamamlanmadı', 'Ödemenizin tamamlandığını doğrulayamadık. Kartınızdan çekim yapıldıysa sizinle iletişime geçeceğiz; dilerseniz tekrar deneyebilirsiniz.'],
+        };
+        $retry = in_array($o['status'], ['basarisiz', 'bekliyor'], true)
+            ? $this->btn('Tekrar deneyin', $this->url('magaza/' . $o['slug'] . '/')) . '<a class="btn btn-secondary" href="' . self::WA . '?text=' . uri_component('Merhaba, ' . $o['reference'] . ' numaralı mağaza siparişim hakkında yazıyorum.') . '" target="_blank" rel="noopener noreferrer">WhatsApp’tan yazın ' . $this->icon('arrowUp') . '</a>'
+            : $this->btn('Mağazaya dönün', $this->url('magaza/'), 'secondary');
+        $error = $o['status'] === 'basarisiz' && $o['error'] !== '' ? '<p class="form-notice">iyzico yanıtı: ' . esc($o['error']) . '</p>' : '';
+        $body = '<section class="wrap section compact-top narrow"><div class="detail-box order-result" data-status="' . esc($o['status']) . '"><dl><div><dt>Sipariş no</dt><dd>' . esc($o['reference']) . '</dd></div><div><dt>Ürün</dt><dd>' . esc($o['product']) . '</dd></div><div><dt>Miktar</dt><dd>' . (int) $o['quantity'] . ' ' . esc($o['unit']) . '</dd></div><div><dt>Tutar</dt><dd>' . price_text($o['total']) . ' <small>(KDV dahil)</small></dd></div></dl>' . $error . ($o['mode'] === 'sandbox' ? '<p class="test-mode">Test modu: bu sipariş denemedir, gerçek ödeme alınmadı.</p>' : '') . '<div class="hero-actions">' . $retry . '</div></div></section>';
+        return $this->page(
+            'odeme/sonuc/',
+            $title,
+            $desc,
+            $this->intro(['Mağaza', 'magaza/'], $title, $desc) . $body,
+            'magaza/',
+            null,
+            ['robots' => 'noindex,nofollow', 'head' => '<meta name="referrer" content="no-referrer">'],
         );
     }
 
@@ -599,13 +689,14 @@ final class Site
     {
         $host = $this->options['host'] ?? 'GitHub Pages';
         $store = $this->hasStore
-            ? '<h2>Mağaza siparişleri</h2><p>Mağaza sayfalarındaki sipariş düğmesi, seçtiğiniz ürün ve miktarla bir WhatsApp mesajı hazırlar. Site sipariş bilgisini kaydetmez; mesajı gönderme kararını siz verirsiniz. Stok, teslimat ve ödeme bilgisi sizinle doğrudan teyit edilir.</p>'
+            ? '<h2>Mağaza siparişleri</h2><p>Mağaza sayfalarındaki WhatsApp sipariş düğmesi, seçtiğiniz ürün ve miktarla bir WhatsApp mesajı hazırlar. Site bu mesajı kaydetmez; gönderme kararını siz verirsiniz. Stok, teslimat ve ödeme bilgisi sizinle doğrudan teyit edilir.</p>'
+                . ($this->cardPayments() ? '<h2>Kartla ödeme</h2><p>Kartla satın aldığınızda ödeme, lisanslı ödeme kuruluşu iyzico’nun ödeme sayfasında yapılır; kart bilgileriniz bu siteye ulaşmaz ve iyzico’nun koşulları geçerlidir. Siparişi teslim edebilmek için adınız, e-posta adresiniz, telefonunuz, teslimat adresiniz, sipariş notunuz ve IP adresiniz sipariş kaydıyla birlikte sitenin veritabanında saklanır. T.C. kimlik numaranız yalnız iyzico’ya iletilir, sitede saklanmaz.</p>' : '')
             : '';
         return $this->page(
             'gizlilik/',
             'Gizlilik ve iletişim bilgileri',
             'Bu web sitesindeki keşif talebi formunun, dış bağlantıların ve iletişim kanallarının kullanımı hakkında bilgi.',
-            $this->intro(null, 'Gizlilik ve iletişim bilgileri.', 'Bu sitede paylaştığınız bilgilerin nasıl kullanıldığını açıkça anlatıyoruz.') . '<article class="wrap prose narrow"><h2>Web sitesi ve ziyaret</h2><p>Bu site ' . $host . ' üzerinde yayınlanır. Site kodu reklam, analiz çerezi veya ziyaretçi takip aracı kullanmaz. Barındırma sağlayıcısı, hizmetin çalışması için IP adresi ve teknik erişim kayıtlarını kendi politikalarına göre işleyebilir.</p><h2>Keşif talebi formu</h2><p>Formdaki bilgiler tarayıcınızda bir mesaj oluşturmak için kullanılır. Site bu bilgileri bir veri tabanına veya e-posta sunucusuna göndermez, yerel depolamaya kaydetmez. “WhatsApp’ta aç” bağlantısını seçtiğinizde hazırladığınız metin WhatsApp’a aktarılır; mesajı gönderme kararını siz verirsiniz. WhatsApp’ın kendi gizlilik koşulları geçerlidir.</p><h2>İletişim</h2><p>Paylaştığınız iletişim ve proje bilgileri, talebinize yanıt vermek ve keşif/teklif görüşmesini yürütmek için kullanılır. Bilgilerinizle ilgili sorularınız veya talepleriniz için <a href="mailto:info@altindasmuhendislik.com">info@altindasmuhendislik.com</a> adresinden bize ulaşabilirsiniz.</p><p>Altındaş Mühendislik &amp; Elektrik<br>Yeni Mah. Anadolu Cad. No: 24A, 35800 Aliağa / İzmir<br><a href="tel:+905384475676">' . self::PHONE . '</a></p>' . $store . '<h2>Dış bağlantılar</h2><p>WhatsApp, harita, sosyal medya' . ($this->hasStore ? '' : ' ve mevcut mağaza') . ' bağlantıları başka hizmetlere gider. Bu hizmetlerde ilgili sağlayıcının koşulları uygulanır. Bu sitede ödeme veya kart bilgisi alınmaz.</p></article>',
+            $this->intro(null, 'Gizlilik ve iletişim bilgileri.', 'Bu sitede paylaştığınız bilgilerin nasıl kullanıldığını açıkça anlatıyoruz.') . '<article class="wrap prose narrow"><h2>Web sitesi ve ziyaret</h2><p>Bu site ' . $host . ' üzerinde yayınlanır. Site kodu reklam, analiz çerezi veya ziyaretçi takip aracı kullanmaz. Barındırma sağlayıcısı, hizmetin çalışması için IP adresi ve teknik erişim kayıtlarını kendi politikalarına göre işleyebilir.</p><h2>Keşif talebi formu</h2><p>Formdaki bilgiler tarayıcınızda bir mesaj oluşturmak için kullanılır. Site bu bilgileri bir veri tabanına veya e-posta sunucusuna göndermez, yerel depolamaya kaydetmez. “WhatsApp’ta aç” bağlantısını seçtiğinizde hazırladığınız metin WhatsApp’a aktarılır; mesajı gönderme kararını siz verirsiniz. WhatsApp’ın kendi gizlilik koşulları geçerlidir.</p><h2>İletişim</h2><p>Paylaştığınız iletişim ve proje bilgileri, talebinize yanıt vermek ve keşif/teklif görüşmesini yürütmek için kullanılır. Bilgilerinizle ilgili sorularınız veya talepleriniz için <a href="mailto:info@altindasmuhendislik.com">info@altindasmuhendislik.com</a> adresinden bize ulaşabilirsiniz.</p><p>Altındaş Mühendislik &amp; Elektrik<br>Yeni Mah. Anadolu Cad. No: 24A, 35800 Aliağa / İzmir<br><a href="tel:+905384475676">' . self::PHONE . '</a></p>' . $store . '<h2>Dış bağlantılar</h2><p>WhatsApp, harita, sosyal medya' . ($this->hasStore ? '' : ' ve mevcut mağaza') . ' bağlantıları başka hizmetlere gider. Bu hizmetlerde ilgili sağlayıcının koşulları uygulanır. ' . ($this->cardPayments() ? 'Kart bilgisi bu sitede alınmaz.' : 'Bu sitede ödeme veya kart bilgisi alınmaz.') . '</p></article>',
         );
     }
 

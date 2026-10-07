@@ -8,6 +8,7 @@ namespace Altindas;
 require_once __DIR__ . '/site.php';
 require_once __DIR__ . '/store.php';
 require_once __DIR__ . '/admin.php';
+require_once __DIR__ . '/payments.php';
 
 final class App
 {
@@ -17,6 +18,7 @@ final class App
     private ?Store $store = null;
     private ?array $static = null;
     private ?Site $site = null;
+    private ?Payments $payments = null;
 
     public function __construct(public readonly string $root)
     {
@@ -71,6 +73,11 @@ final class App
         return $this->store ??= Store::connect($this->config['db']);
     }
 
+    public function payments(): Payments
+    {
+        return $this->payments ??= new Payments($this);
+    }
+
     public function site(): Site
     {
         return $this->site ??= new Site(
@@ -81,6 +88,7 @@ final class App
                 'backend' => 'php',
                 'host' => 'Hostinger',
                 'robots' => empty($this->config['indexable']) ? 'noindex,follow' : 'index,follow',
+                'payments' => $this->configured() && $this->payments()->ready(),
             ],
         );
     }
@@ -144,6 +152,15 @@ function run(string $root): void
     }
     if ($path === 'robots.txt') {
         send(200, 'text/plain; charset=utf-8', $site->robots());
+        return;
+    }
+    if ($app->configured() && ($path === 'odeme/' || $path === 'odeme/sonuc/')) {
+        try {
+            $path === 'odeme/' ? $app->payments()->checkout($site) : $app->payments()->result($site);
+        } catch (\PDOException $e) {
+            error_log('[altindas] ' . $e->getMessage());
+            send(503, 'text/html; charset=utf-8', '<!doctype html><html lang="tr"><meta charset="utf-8"><title>Bakım</title><p>Sipariş işlemi şu an tamamlanamadı. Lütfen birkaç dakika sonra tekrar deneyin.</p></html>', ['Retry-After: 300']);
+        }
         return;
     }
     $routes = $site->routes();

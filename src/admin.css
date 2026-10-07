@@ -555,3 +555,10 @@
   padding: 18px;
   margin-top: 16px;
 }
+.admin-order {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.admin-panel > form.admin-section h3 {
+  font-size: 19px;
+  margin-bottom: 8px;
+}

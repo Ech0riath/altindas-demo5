@@ -3303,6 +3303,66 @@ summary:focus-visible {
   height: 19px;
   margin-top: 2px;
 }
+.order-form .btn + .btn {
+  margin-top: 10px;
+}
+/* Kartla ödeme (Hostinger, iyzico) */
+.test-mode {
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 1px dashed var(--accent-ink);
+  border-radius: 6px;
+  font: 400 11px/1.6 var(--mono);
+  color: var(--accent-ink);
+  background: #fff8e6;
+}
+.form-errors {
+  border: 1px solid #b3261e;
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: #fdf3f2;
+  padding: 18px 20px;
+  margin: 0 0 22px;
+}
+.form-errors h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  color: #8c1d18;
+}
+.form-errors ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.checkout-summary dl,
+.order-result dl {
+  margin: 18px 0;
+}
+.checkout-summary dl > div,
+.order-result dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #dbe0e5;
+}
+.checkout-summary dt,
+.order-result dt {
+  font: 400 11px/1.9 var(--mono);
+  color: var(--muted);
+}
+.checkout-summary dd,
+.order-result dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+.checkout-total dd {
+  font: 700 22px/1.3 var(--display);
+}
+.order-result .hero-actions {
+  margin-top: 24px;
+}
 @media (max-width: 1180px) {
   .product-grid {
     gap: 15px;
