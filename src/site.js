@@ -104,7 +104,9 @@ document.querySelectorAll("[data-filter]").forEach((b) =>
       if (show) visible++;
     });
     const status = document.querySelector(".filter-status");
-    if (status) status.textContent = visible + " proje gösteriliyor.";
+    if (status)
+      status.textContent =
+        visible + " " + (status.dataset.noun || "proje") + " gösteriliyor.";
   }),
 );
 const form = document.getElementById("discovery-form");
@@ -160,4 +162,48 @@ if (form) {
       block: "center",
     });
   });
+}
+document.querySelectorAll("[data-order]").forEach((order) => {
+  const qty = order.querySelector("input[name=qty]");
+  const link = order.querySelector("[data-order-link]");
+  const update = () => {
+    const n = Math.min(9999, Math.max(1, Math.floor(Number(qty.value) || 1)));
+    link.href =
+      "https://wa.me/905384475676?text=" +
+      encodeURIComponent(order.dataset.template.replace("{qty}", String(n)));
+  };
+  qty.closest(".order-qty").hidden = false;
+  qty.addEventListener("input", update);
+  order.addEventListener("submit", (e) => {
+    e.preventDefault();
+    update();
+    link.click();
+  });
+});
+const galleryLinks = document.querySelectorAll("[data-lightbox]");
+if (galleryLinks.length && window.HTMLDialogElement) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "lightbox";
+  dialog.setAttribute("aria-label", "Fotoğraf görüntüleyici");
+  const image = document.createElement("img");
+  const caption = document.createElement("p");
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = "Kapat ✕";
+  close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+  dialog.append(close, image, caption);
+  document.body.append(dialog);
+  galleryLinks.forEach((link) =>
+    link.addEventListener("click", (e) => {
+      const thumb = link.querySelector("img");
+      e.preventDefault();
+      image.src = link.href;
+      image.alt = thumb?.alt || "";
+      caption.textContent = thumb?.alt || "";
+      dialog.showModal();
+    }),
+  );
 }

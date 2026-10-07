@@ -234,14 +234,30 @@
         "Ortak alan aydınlatması ve zayıf akım sistemleri proje kapsamına dahil edildi."
       ],
       "facts": [
-        { "label": "Yapı", "value": "72 daire · 5 blok" },
-        { "label": "Proje alanı", "value": "8.500 m²" },
-        { "label": "Trafo", "value": "630 kVA" },
-        { "label": "Ana pano", "value": "1600 A" }
+        {
+          "label": "Yapı",
+          "value": "72 daire · 5 blok"
+        },
+        {
+          "label": "Proje alanı",
+          "value": "8.500 m²"
+        },
+        {
+          "label": "Trafo",
+          "value": "630 kVA"
+        },
+        {
+          "label": "Ana pano",
+          "value": "1600 A"
+        }
       ],
       "image": "assets/projects/dort-mevsim.webp",
       "imageAlt": "Dört Mevsim Konut Kooperatifi şantiyesindeki konut bloklarının havadan görünümü",
-      "services": ["elektrik-taahhut-proje"]
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "elektrik-taahhut-proje"
+      ]
     },
     {
       "slug": "nigsa-metal",
@@ -265,13 +281,27 @@
         "Güvenlik kameralarının montajı ve ayarları gerçekleştirildi."
       ],
       "facts": [
-        { "label": "Tesis alanı", "value": "12.000 m²" },
-        { "label": "Ana pano", "value": "2500 A" },
-        { "label": "Kompanzasyon", "value": "300 kVAr" },
-        { "label": "Kamera", "value": "24 IP kamera" }
+        {
+          "label": "Tesis alanı",
+          "value": "12.000 m²"
+        },
+        {
+          "label": "Ana pano",
+          "value": "2500 A"
+        },
+        {
+          "label": "Kompanzasyon",
+          "value": "300 kVAr"
+        },
+        {
+          "label": "Kamera",
+          "value": "24 IP kamera"
+        }
       ],
       "image": "assets/projects/nigsa-metal.webp",
       "imageAlt": "Niğsa Metal tesisinin üretim alanı ve endüstriyel kapısı",
+      "gallery": [],
+      "drawing": "building",
       "services": [
         "elektrik-taahhut-proje",
         "kompanzasyon",
@@ -303,13 +333,27 @@
         "Tesisin işletme sorumluluğu üstlenildi."
       ],
       "facts": [
-        { "label": "Trafo", "value": "1600 kVA" },
-        { "label": "Gerilim", "value": "34,5/0,4 kV" },
-        { "label": "Kompanzasyon", "value": "200 kVAr" },
-        { "label": "Kamera", "value": "16 IP kamera" }
+        {
+          "label": "Trafo",
+          "value": "1600 kVA"
+        },
+        {
+          "label": "Gerilim",
+          "value": "34,5/0,4 kV"
+        },
+        {
+          "label": "Kompanzasyon",
+          "value": "200 kVAr"
+        },
+        {
+          "label": "Kamera",
+          "value": "16 IP kamera"
+        }
       ],
       "image": "assets/projects/ozdenizcilik.webp",
       "imageAlt": "Özdenizcilik projesi için sevkiyata hazırlanan prefabrik elektrik köşkleri",
+      "gallery": [],
+      "drawing": "building",
       "services": [
         "kompanzasyon",
         "trafo-bakimi",
@@ -340,13 +384,27 @@
         "Bina montajı, projenin kalan aşamasıdır."
       ],
       "facts": [
-        { "label": "Kapsam", "value": "3 villa + müştemilat" },
-        { "label": "Proje alanı", "value": "3.200 m²" },
-        { "label": "Şantiye panosu", "value": "125 A" },
-        { "label": "Başlangıç", "value": "Aralık 2024" }
+        {
+          "label": "Kapsam",
+          "value": "3 villa + müştemilat"
+        },
+        {
+          "label": "Proje alanı",
+          "value": "3.200 m²"
+        },
+        {
+          "label": "Şantiye panosu",
+          "value": "125 A"
+        },
+        {
+          "label": "Başlangıç",
+          "value": "Aralık 2024"
+        }
       ],
       "image": "",
       "imageAlt": "",
+      "gallery": [],
+      "drawing": "building",
       "services": [
         "elektrik-taahhut-proje",
         "kamera-sistemleri",
@@ -371,12 +429,22 @@
         "Konut projesinin elektrik tesisatı uygulaması gerçekleştirildi."
       ],
       "facts": [
-        { "label": "Yapı", "value": "48 daire" },
-        { "label": "Hizmet", "value": "Elektrik taahhüt" }
+        {
+          "label": "Yapı",
+          "value": "48 daire"
+        },
+        {
+          "label": "Hizmet",
+          "value": "Elektrik taahhüt"
+        }
       ],
       "image": "",
       "imageAlt": "",
-      "services": ["elektrik-taahhut-proje"]
+      "gallery": [],
+      "drawing": "building",
+      "services": [
+        "elektrik-taahhut-proje"
+      ]
     },
     {
       "slug": "ramada",
@@ -397,14 +465,55 @@
         "Pano, tesisat ve kompanzasyon sistemleri teknik takip kapsamında değerlendiriliyor."
       ],
       "facts": [
-        { "label": "Hizmet", "value": "İşletme sorumluluğu" },
-        { "label": "Kapsam", "value": "Pano · tesisat · kompanzasyon" }
+        {
+          "label": "Hizmet",
+          "value": "İşletme sorumluluğu"
+        },
+        {
+          "label": "Kapsam",
+          "value": "Pano · tesisat · kompanzasyon"
+        }
       ],
       "image": "",
       "imageAlt": "",
-      "services": ["isletme-sorumlulugu", "kompanzasyon"]
+      "gallery": [],
+      "drawing": "shield",
+      "services": [
+        "isletme-sorumlulugu",
+        "kompanzasyon"
+      ]
     }
   ],
+  "references": [
+    {
+      "name": "Niğsa Metal",
+      "logo": "assets/references/nigsa-metal.webp",
+      "project": "nigsa-metal"
+    },
+    {
+      "name": "Özdenizcilik",
+      "logo": "assets/references/ozdenizcilik.webp",
+      "project": "ozdenizcilik"
+    },
+    {
+      "name": "Saka Beton",
+      "logo": "assets/references/saka-beton.webp",
+      "project": "saka-beton"
+    },
+    {
+      "name": "Ramada by Wyndham",
+      "logo": "assets/references/ramada.webp",
+      "project": "ramada"
+    },
+    {
+      "name": "Dört Mevsim Konut Yapı Kooperatifi",
+      "logo": "",
+      "project": "dort-mevsim",
+      "wordmark": "DÖRT MEVSİM",
+      "wordmarkSmall": "KONUT YAPI KOOPERATİFİ"
+    }
+  ],
+  "products": [],
   "about": {
     "intro": "Aliağa'dan sahaya uzanan mühendislik.",
     "paragraphs": [
