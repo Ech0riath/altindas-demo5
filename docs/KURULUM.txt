@@ -1,0 +1,64 @@
+﻿ALTINDAŞ MÜHENDİSLİK & ELEKTRİK — SIFIRDAN KURULUM
+====================================================
+
+Bu pakette sitenin tamamı vardır. Hiçbir dış hizmete (GitHub vb.) bağlı değildir;
+yalnız Hostinger'daki PHP ve MySQL ile çalışır.
+
+Paket içeriği:
+  demo/          -> Sunucuya yüklenecek site klasörü
+  KURULUM.txt    -> Bu rehber (sunucuya yüklemeyin)
+
+
+1) PHP SÜRÜMÜ
+   hPanel -> Gelişmiş -> PHP Yapılandırması -> PHP 8.2 veya 8.3 seçin.
+
+2) VERİTABANI
+   hPanel -> Veritabanları -> MySQL Veritabanları:
+   - Yeni bir veritabanı ve kullanıcı oluşturun.
+   - Şifreyi hPanel giriş şifrenizden FARKLI belirleyin.
+   - Veritabanı adını, kullanıcı adını ve şifreyi not alın.
+   (Veritabanı boş olmalı; tabloları kurulum ekranı kendisi oluşturur.)
+
+3) DOSYALARI YÜKLEYİN (birini seçin)
+   a) FTP (FileZilla vb.):
+      - Bu zip'i bilgisayarınızda açın.
+      - "demo" klasörünü sunucuda "public_html" klasörünün içine yükleyin.
+      - Gizli dosyalar (.htaccess) da yüklenmelidir. FileZilla'da:
+        Sunucu menüsü -> "Gizli dosyaları göstermeye zorla" açık olsun.
+   b) hPanel Dosya Yöneticisi:
+      - Zip'i "public_html" klasörüne yükleyin, sağ tık -> Çıkart.
+      - Çıkan KURULUM.txt dosyasını ve zip'i silin.
+
+   Sonuç: public_html/demo/index.php, public_html/demo/.htaccess,
+          public_html/demo/app/ ... şeklinde olmalı.
+
+4) KURULUM EKRANI
+   Tarayıcıda açın:  https://ALANADINIZ/demo/admin/
+   Kurulum ekranı gelir. Şunları girin:
+   - Veritabanı adı, veritabanı kullanıcısı ve şifresi (2. adımdaki bilgiler)
+   - Panel için bir kullanıcı adı ve en az 10 karakterli bir şifre
+   "Kurulumu tamamla" deyin. Tablolar oluşturulur, hazır projeler, ürünler
+   ve referanslar aktarılır, ayar dosyası (app/config.php) yazılır.
+   Kurulum ekranı bundan sonra kendini kilitler.
+
+5) GİRİŞ
+   https://ALANADINIZ/demo/admin/  -> Kullanıcı adı ve şifrenizle giriş yapın.
+   Site:  https://ALANADINIZ/demo/
+
+   Eski bir kurulumdan kalan görüntü görürseniz:
+   hPanel -> Cache Manager -> önbelleği temizleyin, tarayıcıda Ctrl+F5 yapın.
+
+
+NOTLAR
+------
+- Ana dizine kurmak isterseniz "demo" klasörünün İÇİNDEKİLERİ doğrudan
+  public_html'e yükleyin; adresler kendiliğinden uyum sağlar
+  (panel: https://ALANADINIZ/admin/).
+- Güncelleme paketi geldiğinde: dosyaları aynı klasörün üzerine yükleyin.
+  app/config.php dosyasını ve uploads klasörünü SİLMEYİN; bunlar sizin
+  ayarınız ve panelden yüklediğiniz fotoğraflardır.
+- Yedek: phpMyAdmin -> veritabanı -> Dışa aktar, ayrıca demo/uploads klasörü.
+- Panel şifrenizi unutursanız: phpMyAdmin'de "admins" tablosundaki satırı
+  silin, sonra https://ALANADINIZ/demo/admin/kurulum/ adresini açın. Veritabanı
+  şifresini ve yeni kullanıcı adı/şifreyi girerek yeni yönetici oluşturun.
+  Projeler, ürünler ve fotoğraflar silinmez.

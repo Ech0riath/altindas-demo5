@@ -20,7 +20,7 @@ Site ve yönetim paneli **yalnız Hostinger’da** çalışır (PHP + MySQL), al
 npm run build              # PHP 8.1+ ile dist/ (yerel denetim çıktısı)
 npm run check              # bağlantı, semantik ve içerik denetimi (Node 22+)
 npm run preview            # http://127.0.0.1:4325/demo/ (dist önizlemesi)
-npm run package:hostinger  # build/hostinger ve build/altindas-demo-hostinger.zip
+npm run package:hostinger  # build/hostinger, güncelleme ve sıfırdan kurulum zip'leri
 ```
 
 Hostinger çıktısını canlı veriyle denetlemek için PHP’nin yerleşik sunucusu kullanılabilir: paketi `kök/demo` klasörüne açıp `php -S 127.0.0.1:4330 -t kök kök/demo/index.php`; taranan sayfalar `SITE_BASE=/demo/ SITE_ORIGIN=http://127.0.0.1:4330 node scripts/check.mjs <klasör>` ile denetlenir.
@@ -29,7 +29,7 @@ Hostinger çıktısını canlı veriyle denetlemek için PHP’nin yerleşik sun
 
 Her güncelleme `build/altindas-demo-hostinger.zip` olarak hazırlanır. hPanel **Dosya Yöneticisi**’nde zip `public_html/demo` klasörüne yüklenip **Çıkart** ile üzerine açılır (ya da içeriği FTP ile aynı klasöre yüklenir). Pakette `app/config.php` ve panel fotoğrafları bulunmaz; sunucudakiler korunur.
 
-İlk kurulumda `/demo/admin/` kurulum sihirbazını açar: veritabanı bilgileri ve yönetici hesabı girilir; sihirbaz tabloları oluşturur, ilk veriyi aktarır, `app/config.php` dosyasını yazar ve kurulumdan sonra kilitlenir. PHP 8.2 veya 8.3 önerilir.
+Sıfırdan kurulum için `build/altindas-sifirdan-kurulum.zip` kullanılır: içindeki `demo` klasörü FTP ile `public_html`’e yüklenir; adım adım rehber `docs/KURULUM.txt` (zip’te de var). İlk kurulumda `/demo/admin/` kurulum sihirbazını açar: veritabanı bilgileri ve yönetici hesabı girilir; sihirbaz tabloları oluşturur, ilk veriyi aktarır, `app/config.php` dosyasını yazar ve kurulumdan sonra kilitlenir. PHP 8.2 veya 8.3 önerilir.
 
 Hostinger’ın otomatik önbelleği (LiteSpeed) PHP yanıtlarını da saklar. Bu yüzden bütün PHP yanıtları `X-LiteSpeed-Cache-Control: no-cache` gönderir; giriş ve kayıt yanıtları ayrıca önbelleği temizler (`X-LiteSpeed-Purge`). Panel istekleri benzersiz adresle yapılır ve eskimiş CSRF anahtarını kendisi yeniler.
 
